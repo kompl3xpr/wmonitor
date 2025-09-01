@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Users (
 CREATE TABLE IF NOT EXISTS Fiefs (
     id INTEGER PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
-    check_duration INTEGER NOT NULL,
+    check_duration_ms INTEGER NOT NULL,
     last_check TEXT,
     skip_check_until TEXT
 );

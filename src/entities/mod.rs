@@ -12,7 +12,3 @@ pub use fief_chunk::FiefChunk;
 
 mod event;
 pub use event::Event;
-
-mod chunk_statu;
-pub use chunk_statu::ChunkStatus;
-
