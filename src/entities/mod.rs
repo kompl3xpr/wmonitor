@@ -4,11 +4,11 @@ pub use user::User;
 mod fief;
 pub use fief::Fief;
 
-mod fief_member;
-pub use fief_member::FiefMember;
+mod member;
+pub use member::Member;
 
-mod fief_chunk;
-pub use fief_chunk::FiefChunk;
+mod chunk;
+pub use chunk::Chunk;
 
 mod event;
 pub use event::Event;

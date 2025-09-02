@@ -4,10 +4,10 @@ mod fief;
 mod user;
 
 pub mod domains {
-    pub use super::chunk::Chunk;
-    pub use super::event::Event;
-    pub use super::fief::Fief;
-    pub use super::user::User;
+    pub use super::user::domains::*;
+    pub use super::fief::domains::*;
+    pub use super::chunk::domains::*;
+    pub use super::event::domains::*;
 }
 
 pub mod traits {

@@ -9,7 +9,7 @@ pub struct Position {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct FiefChunk {
+pub struct Chunk {
     pub id: i64,
     pub name: String,
     pub fief_id: i64,
@@ -27,6 +27,6 @@ mod test {
 
     #[test]
     fn it_can_be_compiled() {
-        let _ = <super::FiefChunk as sqlx::FromRow<crate::utils::db::CurrentRow>>::from_row;
+        let _ = <super::Chunk as sqlx::FromRow<crate::utils::db::CurrentRow>>::from_row;
     }
 }

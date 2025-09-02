@@ -3,7 +3,6 @@ use sqlx;
 #[derive(Debug, sqlx::FromRow)]
 pub struct User {
     pub id: i64,
-    pub username: String,
     pub is_admin: bool,
 }
 

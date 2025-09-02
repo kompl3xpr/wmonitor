@@ -1,12 +1,62 @@
+use crate::domains::FiefId;
+use anyhow::Result;
 use async_trait::async_trait;
 
-pub struct User;
+pub(super) mod domains {
+    use bitflags::bitflags;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Hash, Serialize, Deserialize)]
+    pub struct UserId(pub i64);
+
+    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    pub struct User {
+        id: UserId,
+        is_admin: bool,
+    }
+
+    bitflags! {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct Permissions: i64 {
+            /// 领地编辑权
+            const FIEF_EDIT           = 1 << 0;
+            /// 领地删除权
+            const FIEF_DELETE         = 1 << 1;
+            /// 区块添加权
+            const CHUNK_ADD           = 1 << 2;
+            /// 区块编辑权
+            const CHUNK_EDIT          = 1 << 3;
+            /// 区块删除权
+            const CHUNK_DELETE        = 1 << 4;
+            /// 添加成员权
+            const MEMBER_INVITE       = 1 << 5;
+            /// 编辑成员权限权
+            const MEMBER_EDIT_PERMS   = 1 << 6;
+            /// 踢出成员权
+            const MEMBER_KICK         = 1 << 7;
+
+            const CHUNK_ALL = Self::CHUNK_ADD.bits() | Self::CHUNK_EDIT.bits() | Self::CHUNK_DELETE.bits();
+            const FIEF_ALL = Self::FIEF_EDIT.bits() | Self::FIEF_DELETE.bits();
+            const MEMBER_ALL = Self::MEMBER_INVITE.bits() | Self::MEMBER_EDIT_PERMS.bits() | Self::MEMBER_KICK.bits();
+            const ALL = Self::CHUNK_ALL.bits() | Self::FIEF_ALL.bits() | Self::MEMBER_ALL.bits();
+        }
+    }
+}
+use domains::*;
 
 #[async_trait]
 pub trait UserRepo {
-    async fn user_by_name(name: &str) -> User;
+    async fn user_by_id(&self, id: UserId) -> Result<User>;
+    async fn set_admin(&self, id: UserId) -> Result<bool>;
+    async fn create(&self, id: UserId, is_admin: bool) -> Result<()>;
+    async fn remove_by_id(&self, id: UserId) -> Result<()>;
+    async fn fiefs(&self, id: UserId) -> Result<Vec<FiefId>>;
+    async fn is_member_of(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
+    async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions>;
+    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
+    async fn all(&self) -> Result<Vec<UserId>>;
+    async fn admins(&self) -> Result<Vec<UserId>>;
+    async fn non_admins(&self) -> Result<Vec<UserId>>;
 }
 
-pub struct SqlxUserRepo {
-
-}
+pub struct SqlxUserRepo {}
