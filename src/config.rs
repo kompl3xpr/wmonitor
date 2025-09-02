@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     io::{Read, Write},
-    sync::{LazyLock, RwLock, RwLockReadGuard, RwLockWriteGuard},
+    sync::{LazyLock, RwLock, RwLockReadGuard},
 };
 
 use toml_edit::DocumentMut;
@@ -10,16 +10,7 @@ use tracing::{error, info};
 const CONFIG_PATH: &'static str = "./cfg.toml";
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Config {
-    pub foo: String,
-    pub bar: Bar,
-}
-
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Bar {
-    pub a: usize,
-    pub b: bool,
-}
+pub struct Config {}
 
 static CONFIG_DOC: LazyLock<RwLock<DocumentMut>> = LazyLock::new(|| {
     info!("loading configuration...");
@@ -59,36 +50,24 @@ static CONFIG: LazyLock<RwLock<Config>> = LazyLock::new(|| {
     RwLock::new(cfg)
 });
 
+pub fn init_cfg() {
+    let _c = CONFIG.read().unwrap();
+}
+
 pub fn cfg<'a>() -> RwLockReadGuard<'a, Config> {
     CONFIG.read().unwrap()
 }
 
-pub struct CfgSaverGuard<'a>(RwLockWriteGuard<'a, Config>);
-
-impl<'a> std::ops::Deref for CfgSaverGuard<'a> {
-    type Target = Config;
-    fn deref(&self) -> &Self::Target {
-        &*self.0
+pub fn save_cfg_with(f: impl FnOnce(&mut Config)) {
+    {
+        let mut cfg = CONFIG.write().unwrap();
+        f(&mut cfg);
     }
+    save_cfg();
 }
 
-impl<'a> std::ops::DerefMut for CfgSaverGuard<'a> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut *self.0
-    }
-}
-
-impl<'a> Drop for CfgSaverGuard<'a> {
-    fn drop(&mut self) {
-        save_cfg(&self.0)
-    }
-}
-
-pub fn cfg_mut<'a>() -> CfgSaverGuard<'a> {
-    CfgSaverGuard(CONFIG.write().unwrap())
-}
-
-fn save_cfg(cfg: &Config) {
+fn save_cfg() {
+    let cfg = CONFIG.read().unwrap();
     let mut doc = CONFIG_DOC.write().unwrap();
 
     let mut updater =

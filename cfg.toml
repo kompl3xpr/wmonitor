@@ -1,9 +1,0 @@
-# 这是foo
-foo = "hell"
-
-# 这是 bar
-[bar] 
-# 这是 bar 的 a
-a = 1001 # comment
-# 这是 bar 的 b
-b = false # comment

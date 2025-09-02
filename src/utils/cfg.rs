@@ -1,14 +1,10 @@
-use toml_edit::{visit_mut::VisitMut, Datetime, DocumentMut, Formatted, Value};
 use tap::prelude::*;
+use toml_edit::{Datetime, DocumentMut, Formatted, Value, visit_mut::VisitMut};
 
-enum Index {
-    Str(String),
-    Int(usize),
-}
 
 pub struct DocUpdater {
     to_be_merged: DocumentMut,
-    path: Vec<Index>,
+    path: Vec<String>,
 }
 
 impl DocUpdater {
@@ -24,10 +20,7 @@ impl DocUpdater {
     fn current_item(&self) -> &toml_edit::Item {
         let mut item = self.to_be_merged.as_item();
         for index in &self.path {
-            match index {
-                Index::Int(i) => item = &item[i],
-                Index::Str(s) => item = &item[s],
-            }
+            item = &item[index];
         }
         item
     }
@@ -39,61 +32,71 @@ impl toml_edit::visit_mut::VisitMut for DocUpdater {
             unreachable!()
         };
         // preserve comments
-        *node = formatted.tap_mut(|f| *f.decor_mut() = node.decor().clone());
+        *node = formatted.tap_mut(|f| f.decor_mut().clone_from(node.decor()));
     }
 
     fn visit_datetime_mut(&mut self, node: &mut Formatted<Datetime>) {
-        let Some(Value::Datetime(mut formatted)) = self.current_item().as_value().cloned() else {
+        let Some(Value::Datetime(formatted)) = self.current_item().as_value().cloned() else {
             unreachable!()
         };
-        *formatted.decor_mut() = node.decor().clone();
-        *node = formatted;
+        *node = formatted.tap_mut(|f| f.decor_mut().clone_from(node.decor()));
     }
 
     fn visit_float_mut(&mut self, node: &mut Formatted<f64>) {
-        let Some(Value::Float(mut formatted)) = self.current_item().as_value().cloned() else {
+        let Some(Value::Float(formatted)) = self.current_item().as_value().cloned() else {
             unreachable!()
         };
-        *formatted.decor_mut() = node.decor().clone();
-        *node = formatted;
+        *node = formatted.tap_mut(|f| f.decor_mut().clone_from(node.decor()));
     }
 
     fn visit_integer_mut(&mut self, node: &mut Formatted<i64>) {
-        let Some(Value::Integer(mut formatted)) = self.current_item().as_value().cloned() else {
+        let Some(Value::Integer(formatted)) = self.current_item().as_value().cloned() else {
             unreachable!()
         };
-        *formatted.decor_mut() = node.decor().clone();
-        *node = formatted;
+        *node = formatted.tap_mut(|f| f.decor_mut().clone_from(node.decor()));
     }
 
     fn visit_string_mut(&mut self, node: &mut Formatted<String>) {
-        let Some(Value::String(mut formatted)) = self.current_item().as_value().cloned() else {
+        let Some(Value::String(formatted)) = self.current_item().as_value().cloned() else {
             unreachable!()
         };
-        *formatted.decor_mut() = node.decor().clone();
-        *node = formatted;
+        *node = formatted.tap_mut(|f| f.decor_mut().clone_from(node.decor()));
     }
 
     fn visit_table_like_kv_mut(&mut self, key: toml_edit::KeyMut<'_>, node: &mut toml_edit::Item) {
-        let key_str = key.to_string();
-        self.path.push(Index::Str(key_str));
+        self.path.push(key.to_string());
         toml_edit::visit_mut::visit_table_like_kv_mut(self, key, node);
         self.path.pop();
     }
 
     fn visit_array_mut(&mut self, node: &mut toml_edit::Array) {
-        for (i, value) in node.iter_mut().enumerate() {
-            self.path.push(Index::Int(i));
-            self.visit_value_mut(value);
-            self.path.pop();
-        }
+        let decor = node.iter().next().map(|v| v.decor().clone());
+
+        let Some(array) = self.current_item().as_array().cloned() else {
+            unreachable!()
+        };
+        node.clear();
+        node.extend(array.into_iter().map(|mut value| {
+            decor.as_ref().map(|d| value.decor_mut().clone_from(d));
+            value
+        }));
     }
 
     fn visit_array_of_tables_mut(&mut self, node: &mut toml_edit::ArrayOfTables) {
-        for (i, table) in node.iter_mut().enumerate() {
-            self.path.push(Index::Int(i));
-            self.visit_table_mut(table);
-            self.path.pop();
+        let decor = node.iter().next().map(|t| t.decor().clone());
+        node.clear();
+        if let Some(array) = self.current_item().as_array() {
+            node.extend(array.iter().map(|v| {
+                v.as_inline_table()
+                    .unwrap()
+                    .clone()
+                    .into_table()
+                    .tap_mut(|t| {
+                        decor.as_ref().map(|d| t.decor_mut().clone_from(d));
+                    })
+            }));
+        } else {
+            unreachable!();
         }
     }
 }
