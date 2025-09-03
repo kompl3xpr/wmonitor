@@ -10,7 +10,35 @@ use tracing::{error, info};
 const CONFIG_PATH: &'static str = "./cfg.toml";
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Config {}
+pub struct Config {
+    pub common: CommonConfig,
+    pub network: NetworkConfig,
+    pub checker: CheckerConfig,
+    pub notification: NotificationConfig,
+}
+
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct CommonConfig {
+    pub database_url: String,
+    pub discord_token: String,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    pub sleep_between_requests_sec: usize,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct CheckerConfig {
+    pub default_interval_min: usize,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct NotificationConfig {
+    pub enabled: bool,
+    pub event_filter: Vec<String>,
+}
 
 static CONFIG_DOC: LazyLock<RwLock<DocumentMut>> = LazyLock::new(|| {
     info!("loading configuration...");
@@ -51,7 +79,8 @@ static CONFIG: LazyLock<RwLock<Config>> = LazyLock::new(|| {
 });
 
 pub fn init_cfg() {
-    let _c = CONFIG.read().unwrap();
+    let c = CONFIG.read().unwrap();
+    info!("CONFIG = {c:#?}");
 }
 
 pub fn cfg<'a>() -> RwLockReadGuard<'a, Config> {

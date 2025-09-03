@@ -29,21 +29,32 @@ use domains::*;
 
 #[async_trait]
 pub trait ChunkRepo {
-    async fn fief_of(&self, id: ChunkId) -> Result<FiefId>;
-    async fn name_of(&self, id: ChunkId) -> Result<String>;
-    async fn position_of(&self, id: ChunkId) -> Result<Position>;
+    // [C]reate
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<()>;
+
+    // [R]ead
+    // - self or fields
+    async fn fief(&self, id: ChunkId) -> Result<FiefId>;
+    async fn name(&self, id: ChunkId) -> Result<String>;
+    async fn position(&self, id: ChunkId) -> Result<Position>;
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk>;
     async fn ref_img(&self, id: ChunkId) -> Result<Option<RgbaImage>>;
     async fn mask_img(&self, id: ChunkId) -> Result<Option<GrayImage>>;
     async fn diff_img(&self, id: ChunkId) -> Result<Option<GrayImage>>;
     async fn diff_count(&self, id: FiefId) -> Result<usize>;
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<()>;
-    async fn remove_by_id(&self, id: ChunkId) -> Result<bool>;
+    // - related
+    // *PASS*
+
+    // [U]pdate
+    // - self or fields
     async fn update_ref_img(&self, id: ChunkId, img: RgbaImage) -> Result<()>;
     async fn update_mask_img(&self, id: ChunkId, img: RgbaImage) -> Result<()>;
-    // async fn update_diff_img(&self, id: ChunkId, img: RgbaImage) -> Result<()>;
+    async fn update_diff(&self, id: ChunkId, img: RgbaImage, count: usize) -> Result<()>;
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()>;
     async fn set_name(&self, id: ChunkId, name: &str) -> Result<()>;
-}
+    // - related
+    // *PASS*
 
-pub struct SqlxChunkRepo {}
+    // [D]elete
+    async fn remove_by_id(&self, id: ChunkId) -> Result<bool>;
+}

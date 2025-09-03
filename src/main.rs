@@ -1,21 +1,21 @@
-use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
-use std::str::FromStr;
 
 pub mod config;
-pub use config::{cfg, save_cfg_with, init_cfg};
+pub mod utils;
+pub use config::{cfg, init_cfg, save_cfg_with};
 
-pub mod bot;
-pub mod checker;
-pub mod commands;
 pub mod entities;
 
 pub mod repos;
+use repos::Repositories;
+
 pub mod domains {
     pub use crate::repos::domains::*;
 }
 
-pub mod utils;
 pub mod app;
+pub mod bot;
+pub mod checker;
+pub mod commands;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,12 +23,11 @@ async fn main() -> anyhow::Result<()> {
     dotenv::dotenv()?;
     init_cfg();
 
-    let options =
-        SqliteConnectOptions::from_str("sqlite://db/wmonitor.db")?.create_if_missing(true);
-    let pool = SqlitePool::connect_with(options).await?;
-    sqlx::migrate!("db/migrations").run(&pool).await?;
+    let wmonitor = app::WMonitor::builder()
+        .bot(bot::new_client().await?)
+        .repo(Repositories::from_sqlx().await?)
+        .build();
 
-    let mut client = bot::new_client().await?;
-    client.start().await?;
+    wmonitor.run().await?;
     Ok(())
 }

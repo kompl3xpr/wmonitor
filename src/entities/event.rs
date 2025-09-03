@@ -2,6 +2,7 @@
 pub struct Event {
     pub id: i64,
     pub date: chrono::DateTime<chrono::Utc>,
+    pub kind: String,
     pub value: sqlx::types::JsonValue,
 }
 

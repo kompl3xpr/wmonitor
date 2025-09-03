@@ -17,9 +17,6 @@ pub mod traits {
     pub use super::user::UserRepo;
 }
 
-pub mod sqlx {
-    pub use super::chunk::SqlxChunkRepo;
-    pub use super::event::SqlxEventRepo;
-    pub use super::fief::SqlxFiefRepo;
-    pub use super::user::SqlxUserRepo;
-}
+pub mod sqlx;
+mod repos;
+pub use repos::Repositories;

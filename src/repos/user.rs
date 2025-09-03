@@ -46,17 +46,30 @@ use domains::*;
 
 #[async_trait]
 pub trait UserRepo {
-    async fn user_by_id(&self, id: UserId) -> Result<User>;
-    async fn set_admin(&self, id: UserId) -> Result<bool>;
+    // [C]reate
     async fn create(&self, id: UserId, is_admin: bool) -> Result<()>;
-    async fn remove_by_id(&self, id: UserId) -> Result<()>;
+    
+    // [R]ead
+    // - self or fields
+    async fn user_by_id(&self, id: UserId) -> Result<User>;
+    async fn all(&self) -> Result<Vec<User>>;
+    async fn admins(&self) -> Result<Vec<User>>;
+    async fn non_admins(&self) -> Result<Vec<User>>;
+    // - related
     async fn fiefs(&self, id: UserId) -> Result<Vec<FiefId>>;
     async fn is_member_of(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
     async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions>;
+    
+    // [U]pdate
+    // - self or fields
+    async fn set_admin(&self, id: UserId) -> Result<bool>;
+    // - related
     async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
-    async fn all(&self) -> Result<Vec<UserId>>;
-    async fn admins(&self) -> Result<Vec<UserId>>;
-    async fn non_admins(&self) -> Result<Vec<UserId>>;
+    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<()>;
+    async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
+    
+    // [D]elete
+    async fn remove_by_id(&self, id: UserId) -> Result<()>;
 }
 
-pub struct SqlxUserRepo {}
+

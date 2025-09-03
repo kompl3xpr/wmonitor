@@ -19,7 +19,9 @@ pub struct Chunk {
 
     pub img_ref: Option<RgbaImg>,
     pub img_mask: Option<GrayImg>,
+
     pub img_diff: Option<GrayImg>,
+    pub diff_count: i64,
 }
 
 #[cfg(test)]

@@ -1,0 +1,58 @@
+[common]
+# URL for the SQLite database. If empty, it will use the environment variable 'DATABASE_URL'.
+# SQLite 数据库的 URL。如果为空，将使用环境变量 'DATABASE_URL'。
+database_url = "sqlite://db/wmonitor.db"
+
+# Discord bot token. If empty, it will use the environment variable 'DISCORD_BOT'.
+# Discord 机器人令牌。如果为空，将使用环境变量 'DISCORD_BOT'。
+discord_token = ""
+
+
+[network]
+# Delay in seconds between requests to avoid being blocked by Cloudflare.
+# 请求之间的延迟时间（秒），以避免被 Cloudflare 阻止。
+sleep_between_requests_sec = 5
+
+
+[checker]
+# Default interval in minutes for checking each fief.
+# 检查每个封地的默认间隔时间（分钟）。
+default_interval_min = 15
+
+
+[notification]
+# Enable sending notifications.
+# 启用发送通知。
+enabled = true
+
+# The Discord channel where the bot will send notifications.
+# 机器人将发送通知的 Discord 频道。
+discord_channel = ""
+
+# Event types that will trigger a notification.
+# 将触发通知的事件类型。
+# Available values and their descriptions:
+# 可用值及其描述：
+# 'DIFF_FOUND': A change or difference has been detected.
+# 'DIFF_FOUND': 检测到变更或差异。
+# 'APP_START': The application has started.
+# 'APP_START': 应用程序已启动。
+# 'APP_ERROR': An application-level error has occurred.
+# 'APP_ERROR': 发生应用程序级错误。
+# 'APP_STOP': The application has stopped.
+# 'APP_STOP': 应用程序已停止。
+# 'SKIP_CHECK_BEGIN': The check for a specific fief has been temporarily skipped.
+# 'SKIP_CHECK_BEGIN': 对特定封地的检查已暂时跳过。
+# 'SKIP_CHECK_END': The temporary skipping of checks has ended.
+# 'SKIP_CHECK_END': 检查的临时跳过已结束。
+# 'CHECK_ERROR': An error occurred during the check process.
+# 'CHECK_ERROR': 检查过程中发生错误。
+event_filter = [
+    'APP_START',
+    'APP_ERROR',
+    'APP_STOP',
+    'SKIP_CHECK_BEGIN',
+    'SKIP_CHECK_END',
+    'DIFF_FOUND',
+    'CHECK_ERROR',
+]
