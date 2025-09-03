@@ -6,13 +6,13 @@ pub(super) mod domains {
     use bitflags::bitflags;
     use serde::{Deserialize, Serialize};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct UserId(pub i64);
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct User {
-        id: UserId,
-        is_admin: bool,
+        pub id: UserId,
+        pub is_admin: bool,
     }
 
     bitflags! {
@@ -34,7 +34,8 @@ pub(super) mod domains {
             const MEMBER_EDIT_PERMS   = 1 << 6;
             /// 踢出成员权
             const MEMBER_KICK         = 1 << 7;
-
+            
+            const NONE = 0;
             const CHUNK_ALL = Self::CHUNK_ADD.bits() | Self::CHUNK_EDIT.bits() | Self::CHUNK_DELETE.bits();
             const FIEF_ALL = Self::FIEF_EDIT.bits() | Self::FIEF_DELETE.bits();
             const MEMBER_ALL = Self::MEMBER_INVITE.bits() | Self::MEMBER_EDIT_PERMS.bits() | Self::MEMBER_KICK.bits();
@@ -62,14 +63,14 @@ pub trait UserRepo {
     
     // [U]pdate
     // - self or fields
-    async fn set_admin(&self, id: UserId) -> Result<bool>;
+    async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<bool>;
     // - related
-    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
-    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<()>;
+    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<bool>;
+    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
     
     // [D]elete
-    async fn remove_by_id(&self, id: UserId) -> Result<()>;
+    async fn remove_by_id(&self, id: UserId) -> Result<bool>;
 }
 
 

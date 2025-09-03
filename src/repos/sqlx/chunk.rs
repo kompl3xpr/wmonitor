@@ -1,8 +1,8 @@
 use crate::domains::{Chunk, ChunkId, FiefId, Position};
 use crate::repos::traits::ChunkRepo;
+use crate::utils::img::ImagePng;
 use anyhow::Result;
 use async_trait::async_trait;
-use image::{GrayImage, RgbaImage};
 use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 
@@ -36,13 +36,13 @@ impl ChunkRepo for SqlxChunkRepo {
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk> {
         todo!()
     }
-    async fn ref_img(&self, id: ChunkId) -> Result<Option<RgbaImage>> {
+    async fn ref_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
         todo!()
     }
-    async fn mask_img(&self, id: ChunkId) -> Result<Option<GrayImage>> {
+    async fn mask_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
         todo!()
     }
-    async fn diff_img(&self, id: ChunkId) -> Result<Option<GrayImage>> {
+    async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
         todo!()
     }
     async fn diff_count(&self, id: FiefId) -> Result<usize> {
@@ -53,13 +53,13 @@ impl ChunkRepo for SqlxChunkRepo {
 
     // [U]pdate
     // - self or fields
-    async fn update_ref_img(&self, id: ChunkId, img: RgbaImage) -> Result<()> {
+    async fn update_ref_img(&self, id: ChunkId, img: ImagePng) -> Result<()> {
         todo!()
     }
-    async fn update_mask_img(&self, id: ChunkId, img: RgbaImage) -> Result<()> {
+    async fn update_mask_img(&self, id: ChunkId, img: ImagePng) -> Result<()> {
         todo!()
     }
-    async fn update_diff(&self, id: ChunkId, img: RgbaImage, count: usize) -> Result<()> {
+    async fn update_diff(&self, id: ChunkId, img: ImagePng, count: usize) -> Result<()> {
         todo!()
     }
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()> {

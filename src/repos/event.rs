@@ -5,17 +5,17 @@ pub(super) mod domains {
     use serde::{Deserialize, Serialize};
     use crate::domains::{FiefId, UserId};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct EventId(pub i64);
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct Event {
-        id: EventId,
-        date: chrono::DateTime<chrono::Utc>,
-        kind: EventKind,
+        pub id: EventId,
+        pub date: chrono::DateTime<chrono::Utc>,
+        pub kind: EventKind,
     }
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub enum EventKind {
         AppStart,
         AppStop,
@@ -26,31 +26,31 @@ pub(super) mod domains {
         CheckError(CheckErrorEvent),
     }
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct DiffFoundEvent {
         fief: FiefId,
         diff_count: usize,
     }
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct SkipCheckBeginEvent {
         fief: FiefId,
         who: UserId,
         until: chrono::DateTime<chrono::Utc>,
     }  
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct SkipCheckEndEvent {
         fief: FiefId,
         is_cancellation: bool,
     }
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct AppErrorEvent {
         description: String,
     }
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct CheckErrorEvent {
         fief: FiefId,
         description: String,

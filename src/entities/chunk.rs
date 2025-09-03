@@ -1,5 +1,3 @@
-use crate::{utils::db::{GrayImg, RgbaImg}};
-
 #[derive(Debug, sqlx::FromRow)]
 pub struct Position {
     #[sqlx(rename = "pos_x")]
@@ -17,10 +15,10 @@ pub struct Chunk {
     #[sqlx(flatten)]
     pub position: Position,
 
-    pub img_ref: Option<RgbaImg>,
-    pub img_mask: Option<GrayImg>,
+    pub img_ref: Option<Vec<u8>>,
+    pub img_mask: Option<Vec<u8>>,
 
-    pub img_diff: Option<GrayImg>,
+    pub img_diff: Option<Vec<u8>>,
     pub diff_count: i64,
 }
 

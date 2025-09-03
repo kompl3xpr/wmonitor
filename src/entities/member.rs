@@ -1,7 +1,7 @@
 #[derive(Debug, sqlx::FromRow)]
 pub struct Member {
-    pub fief_id: i64,
     pub user_id: i64,
+    pub fief_id: i64,
     pub permissions: i64,
 }
 

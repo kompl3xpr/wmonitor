@@ -5,10 +5,10 @@ use async_trait::async_trait;
 pub(super) mod domains {
     use serde::{Deserialize, Serialize};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct FiefId(pub i64);
 
-    #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+    #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct Fief {
         pub id: FiefId,
         pub name: String,

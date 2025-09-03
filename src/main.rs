@@ -1,21 +1,5 @@
-
-pub mod config;
-pub mod utils;
-pub use config::{cfg, init_cfg, save_cfg_with};
-
-pub mod entities;
-
-pub mod repos;
-use repos::Repositories;
-
-pub mod domains {
-    pub use crate::repos::domains::*;
-}
-
-pub mod app;
-pub mod bot;
-pub mod checker;
-pub mod commands;
+use tracing::{info, error};
+use wmonitor::{bot, app, cfg, init_cfg, Repositories};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,9 +9,21 @@ async fn main() -> anyhow::Result<()> {
 
     let wmonitor = app::WMonitor::builder()
         .bot(bot::new_client().await?)
-        .repo(Repositories::from_sqlx().await?)
+        .repo(Repositories::from_sqlx(&datebase_url()).await?)
         .build();
 
     wmonitor.run().await?;
     Ok(())
+}
+
+fn datebase_url() -> String {
+    let mut url = cfg().common.database_url.clone();
+    if url.is_empty() {
+        info!("attempting to use environment variable `DATABASE_URL`...");
+        url = std::env::var("DATABASE_URL").unwrap_or_else(|e| {
+            error!("failed to get variable `DATABASE_URL`: {e}");
+            panic!();
+        });
+    }
+    url
 }

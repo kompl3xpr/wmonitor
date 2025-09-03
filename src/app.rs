@@ -1,7 +1,6 @@
 use anyhow::Result;
 
 
-
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {
     repo: crate::repos::Repositories,
