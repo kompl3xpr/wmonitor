@@ -1,6 +1,9 @@
 use super::new_repo;
 use std::collections::HashSet;
-use wmonitor::{domains::{ChunkId, FiefId, Position}, utils::img::ImagePng};
+use wmonitor::{
+    domains::{ChunkId, FiefId, Position},
+    utils::img::ImagePng,
+};
 
 // [C]reate
 #[tokio::test]
@@ -240,7 +243,10 @@ async fn update_ref_img() {
     assert_eq!(repo.chunk().ref_img(id).await.unwrap(), None);
 
     let img = Some(ImagePng::new(vec![0xCA, 0xFE, 0xBA, 0xBE]));
-    repo.chunk().update_ref_img(id, img.as_ref().cloned()).await.unwrap();
+    repo.chunk()
+        .update_ref_img(id, img.as_ref().cloned())
+        .await
+        .unwrap();
     assert_eq!(repo.chunk().ref_img(id).await.unwrap(), img);
 }
 
@@ -259,7 +265,10 @@ async fn update_mask_img() {
     assert_eq!(repo.chunk().mask_img(id).await.unwrap(), None);
 
     let img = Some(ImagePng::new(vec![0xCA, 0xFE, 0xBA, 0xBE]));
-    repo.chunk().update_mask_img(id, img.as_ref().cloned()).await.unwrap();
+    repo.chunk()
+        .update_mask_img(id, img.as_ref().cloned())
+        .await
+        .unwrap();
     assert_eq!(repo.chunk().mask_img(id).await.unwrap(), img);
 }
 
@@ -279,7 +288,10 @@ async fn update_diff() {
     assert_eq!(repo.chunk().diff_count(id).await.unwrap(), 0);
 
     let img = Some(ImagePng::new(vec![0xCA, 0xFE, 0xBA, 0xBE]));
-    repo.chunk().update_diff(id, img.as_ref().cloned(), 114514).await.unwrap();
+    repo.chunk()
+        .update_diff(id, img.as_ref().cloned(), 114514)
+        .await
+        .unwrap();
     assert_eq!(repo.chunk().diff_img(id).await.unwrap(), img);
     assert_eq!(repo.chunk().diff_count(id).await.unwrap(), 114514);
 }

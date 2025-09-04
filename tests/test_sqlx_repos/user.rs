@@ -1,5 +1,5 @@
-use wmonitor::domains::{Permissions, User, UserId};
 use super::new_repo;
+use wmonitor::domains::{Permissions, User, UserId};
 
 fn new_user(id: i64, is_admin: bool) -> User {
     let id = UserId(id);
@@ -91,10 +91,7 @@ async fn non_admins() {
     repo.user().create(UserId(810), false).await.unwrap();
 
     use std::collections::HashSet;
-    let expect = HashSet::<User>::from_iter([
-        new_user(114514, false),
-        new_user(810, false),
-    ]);
+    let expect = HashSet::<User>::from_iter([new_user(114514, false), new_user(810, false)]);
     let actual = repo.user().non_admins().await.unwrap();
     assert_eq!(expect, actual.into_iter().collect::<HashSet<User>>());
 }
@@ -108,7 +105,10 @@ async fn fiefs() {
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    repo.user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
 
@@ -123,11 +123,22 @@ async fn is_member_of() {
     repo.user().create(UserId(114514), false).await.unwrap();
     let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
-    let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
+    let is_member = repo
+        .user()
+        .is_member_of(UserId(114514), fief_id)
+        .await
+        .unwrap();
     assert!(!is_member);
 
-    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
-    let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
+    repo.user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
+    let is_member = repo
+        .user()
+        .is_member_of(UserId(114514), fief_id)
+        .await
+        .unwrap();
     assert!(is_member);
 }
 
@@ -137,25 +148,32 @@ async fn permissions_in() {
     repo.user().create(UserId(114514), false).await.unwrap();
     let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     let p = Permissions::CHUNK_ALL;
-    repo.user().join(UserId(114514), fief_id, Some(p)).await.unwrap();
+    repo.user()
+        .join(UserId(114514), fief_id, Some(p))
+        .await
+        .unwrap();
 
     let expect = Permissions::CHUNK_ADD | Permissions::CHUNK_EDIT | Permissions::CHUNK_DELETE;
-    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    let actual = repo
+        .user()
+        .permissions_in(UserId(114514), fief_id)
+        .await
+        .unwrap();
     assert_eq!(actual, expect);
 }
 
 #[tokio::test]
 async fn set_admin() {
     let repo = new_repo().await;
-    
+
     repo.user().set_admin(UserId(114514), true).await.unwrap();
 
     repo.user().create(UserId(114514), false).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
+    let User { is_admin, .. } = repo.user().user_by_id(UserId(114514)).await.unwrap();
     assert!(!is_admin);
 
     repo.user().set_admin(UserId(114514), true).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
+    let User { is_admin, .. } = repo.user().user_by_id(UserId(114514)).await.unwrap();
     assert!(is_admin);
 }
 
@@ -164,16 +182,30 @@ async fn set_permissions_in() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
-    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    repo.user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
     let expect = Permissions::NONE;
-    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    let actual = repo
+        .user()
+        .permissions_in(UserId(114514), fief_id)
+        .await
+        .unwrap();
     assert_eq!(actual, expect);
 
     let p = Permissions::ALL - Permissions::MEMBER_KICK - Permissions::MEMBER_EDIT_PERMS;
-    repo.user().set_permissions_in(UserId(114514), fief_id, p).await.unwrap();
+    repo.user()
+        .set_permissions_in(UserId(114514), fief_id, p)
+        .await
+        .unwrap();
 
     let expect = Permissions::FIEF_ALL | Permissions::CHUNK_ALL | Permissions::MEMBER_INVITE;
-    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    let actual = repo
+        .user()
+        .permissions_in(UserId(114514), fief_id)
+        .await
+        .unwrap();
     assert_eq!(actual, expect);
 }
 
@@ -186,12 +218,20 @@ async fn join() {
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let success = repo
+        .user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
     assert!(success);
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
 
-    let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let success = repo
+        .user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
     assert!(!success);
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
@@ -202,7 +242,10 @@ async fn leave() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
-    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    repo.user()
+        .join(UserId(114514), fief_id, None)
+        .await
+        .unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
 
@@ -230,10 +273,7 @@ async fn remove_by_id() {
     let result = repo.user().remove_by_id(UserId(1919)).await.unwrap();
     assert!(result);
 
-    let expect = HashSet::<User>::from_iter([
-        new_user(114514, false),
-        new_user(810, false),
-    ]);
+    let expect = HashSet::<User>::from_iter([new_user(114514, false), new_user(810, false)]);
     let actual = repo.user().all().await.unwrap();
     assert_eq!(expect, actual.into_iter().collect::<HashSet<User>>());
 
