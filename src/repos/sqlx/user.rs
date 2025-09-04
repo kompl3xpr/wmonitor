@@ -20,7 +20,7 @@ impl SqlxUserRepo {
 #[async_trait]
 impl UserRepo for SqlxUserRepo {
     // [C]reate
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<bool> {
+    async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>> {
         let result = sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
             .bind(id.0)
             .bind(is_admin)
@@ -38,7 +38,7 @@ impl UserRepo for SqlxUserRepo {
                 .bind(permissions.bits())
                 .execute(&*self.0)
                 .await;
-        Ok(conv_create_result(result)?)
+        Ok(conv_create_result::<i64>(result)?.is_some())
     }
 
     // [R]ead

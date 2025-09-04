@@ -4,6 +4,7 @@ use crate::repos::traits::ChunkRepo;
 use crate::utils::{db::*, img::ImagePng};
 use anyhow::Result;
 use async_trait::async_trait;
+use sqlx::any;
 use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 
@@ -19,7 +20,7 @@ impl SqlxChunkRepo {
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
     // [C]reate
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<bool> {
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>> {
         let result: Vec<(i64,)> = sqlx::query_as(
             "SELECT id FROM Chunks
             WHERE fief_id = $1 AND name = $2",
@@ -30,7 +31,7 @@ impl ChunkRepo for SqlxChunkRepo {
         .await?;
 
         if !result.is_empty() {
-            return Ok(false);
+            return Ok(None);
         }
 
         let result = sqlx::query(
@@ -169,7 +170,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(result.0.map(ImagePng::new))
     }
 
-    async fn diff_count(&self, id: FiefId) -> Result<usize> {
+    async fn diff_count(&self, id: ChunkId) -> Result<usize> {
         let result: (i64,) = sqlx::query_as("SELECT diff_count FROM Chunks WHERE id = $1")
             .bind(id.0)
             .fetch_one(&*self.0)
@@ -233,6 +234,19 @@ impl ChunkRepo for SqlxChunkRepo {
     }
 
     async fn set_name(&self, id: ChunkId, name: &str) -> Result<()> {
+        let result: Vec<(i64,)> = sqlx::query_as(
+            "SELECT id FROM Chunks
+            WHERE fief_id = (SELECT fief_id FROM Chunks WHERE id = $1) AND name = $2",
+        )
+        .bind(id.0)
+        .bind(name)
+        .fetch_all(&*self.0)
+        .await?;
+
+        if !result.is_empty() {
+            return Err(anyhow::anyhow!("name {name} already exists"));
+        }
+
         sqlx::query("UPDATE Chunks SET name = $1 WHERE id = $2")
             .bind(name)
             .bind(id.0)

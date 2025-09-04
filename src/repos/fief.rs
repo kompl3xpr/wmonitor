@@ -8,6 +8,12 @@ pub(super) mod domains {
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct FiefId(pub i64);
 
+    impl From<i64> for FiefId {
+        fn from(value: i64) -> Self {
+            Self(value)
+        }
+    }
+
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct Fief {
         pub id: FiefId,
@@ -22,7 +28,11 @@ use domains::*;
 #[async_trait]
 pub trait FiefRepo {
     // [C]reate
-    async fn create(&self, name: &str, check_interval: Option<chrono::Duration>) -> Result<bool>;
+    async fn create(
+        &self,
+        name: &str,
+        check_interval: Option<chrono::Duration>,
+    ) -> Result<Option<FiefId>>;
 
     // [R]ead
     // - self or fields

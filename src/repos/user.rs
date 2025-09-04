@@ -9,6 +9,12 @@ pub(super) mod domains {
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct UserId(pub i64);
 
+    impl From<i64> for UserId {
+        fn from(value: i64) -> Self {
+            Self(value)
+        }
+    }
+
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct User {
         pub id: UserId,
@@ -34,7 +40,7 @@ pub(super) mod domains {
             const MEMBER_EDIT_PERMS   = 1 << 6;
             /// 踢出成员权
             const MEMBER_KICK         = 1 << 7;
-            
+
             const NONE = 0;
             const CHUNK_ALL = Self::CHUNK_ADD.bits() | Self::CHUNK_EDIT.bits() | Self::CHUNK_DELETE.bits();
             const FIEF_ALL = Self::FIEF_EDIT.bits() | Self::FIEF_DELETE.bits();
@@ -48,9 +54,9 @@ use domains::*;
 #[async_trait]
 pub trait UserRepo {
     // [C]reate
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<bool>;
+    async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>>;
     async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
-    
+
     // [R]ead
     // - self or fields
     async fn user_by_id(&self, id: UserId) -> Result<User>;
@@ -61,16 +67,14 @@ pub trait UserRepo {
     async fn fiefs(&self, id: UserId) -> Result<Vec<FiefId>>;
     async fn is_member_of(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
     async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions>;
-    
+
     // [U]pdate
     // - self or fields
     async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()>;
     // - related
     async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
-    
+
     // [D]elete
     async fn remove_by_id(&self, id: UserId) -> Result<bool>;
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
 }
-
-

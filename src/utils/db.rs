@@ -4,20 +4,14 @@ pub type CurrentTypeInfo = <CurrentDb as sqlx::Database>::TypeInfo;
 
 use sqlx::sqlite::SqliteQueryResult;
 
-pub fn conv_create_result(result: Result<SqliteQueryResult, sqlx::Error>) -> anyhow::Result<bool> {
+
+pub fn conv_create_result<Id>(result: Result<SqliteQueryResult, sqlx::Error>) -> Result<Option<Id>, sqlx::Error>
+where
+    Id: From<i64>,
+{
     match &result {
-        Ok(r) => Ok(r.rows_affected() == 1),
-        Err(sqlx::Error::Database(db_err)) => {
-            if matches!(db_err.kind(), sqlx::error::ErrorKind::UniqueViolation | sqlx::error::ErrorKind::ForeignKeyViolation) {
-                Ok(false)
-            } else {
-                result?;
-                unreachable!();
-            }
-        }
-        _ => {
-            result?;
-            unreachable!();
-        }
+        Ok(r) => Ok(Some(r.last_insert_rowid().into())),
+        Err(sqlx::Error::Database(_)) => Ok(None),
+        _ => Err(result.unwrap_err()),
     }
 }

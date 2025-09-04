@@ -1,7 +1,7 @@
-use anyhow::Result;
-use async_trait::async_trait;
 use crate::domains::FiefId;
 use crate::utils::img::ImagePng;
+use anyhow::Result;
+use async_trait::async_trait;
 
 pub(super) mod domains {
     use crate::domains::FiefId;
@@ -9,6 +9,12 @@ pub(super) mod domains {
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct ChunkId(pub i64);
+
+    impl From<i64> for ChunkId {
+        fn from(value: i64) -> Self {
+            Self(value)
+        }
+    }
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct Position {
@@ -19,6 +25,12 @@ pub(super) mod domains {
     impl Position {
         pub fn new(x: usize, y: usize) -> Self {
             Self { x, y }
+        }
+    }
+
+    impl From<[usize; 2]> for Position {
+        fn from(value: [usize; 2]) -> Self {
+            Self { x: value[0], y: value[1] }
         }
     }
 
@@ -35,7 +47,7 @@ use domains::*;
 #[async_trait]
 pub trait ChunkRepo {
     // [C]reate
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<bool>;
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>>;
 
     // [R]ead
     // - self or fields
@@ -48,7 +60,7 @@ pub trait ChunkRepo {
     async fn ref_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn mask_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
-    async fn diff_count(&self, id: FiefId) -> Result<usize>;
+    async fn diff_count(&self, id: ChunkId) -> Result<usize>;
     // - related
     // *PASS*
 

@@ -8,6 +8,12 @@ pub(super) mod domains {
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct EventId(pub i64);
 
+    impl From<i64> for EventId {
+        fn from(value: i64) -> Self {
+            Self(value)
+        }
+    }
+
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct Event {
         pub id: EventId,
@@ -61,7 +67,7 @@ use domains::*;
 #[async_trait]
 pub trait EventRepo {
     // [C]reate
-    async fn save(&self, kind: EventKind) -> Result<()>;
+    async fn save(&self, kind: EventKind) -> Result<Option<EventId>>;
 
     // [R]ead
     // - self or fields
@@ -73,9 +79,9 @@ pub trait EventRepo {
     // *PASS*
     
     // [D]elete
-    async fn remove_by_id(&self, id: EventId) -> Result<()>;
-    async fn remove_all_by_kind(&self, kind: &str) -> Result<()>;
-    async fn remove_all_before(&self, date: chrono::DateTime<chrono::Utc>) -> Result<()>;
-    async fn remove_all(&self) -> Result<()>;
+    async fn remove_by_id(&self, id: EventId) -> Result<bool>;
+    async fn remove_all_by_kind(&self, kind: &str) -> Result<bool>;
+    async fn remove_all_before(&self, date: chrono::DateTime<chrono::Utc>) -> Result<bool>;
+    async fn remove_all(&self) -> Result<bool>;
 }
 

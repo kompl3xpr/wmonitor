@@ -1,6 +1,6 @@
 use super::new_repo;
-use std::collections::HashSet;
 use chrono::TimeZone;
+use std::collections::HashSet;
 use wmonitor::{
     cfg,
     domains::{Fief, FiefId, Position, UserId},
@@ -13,22 +13,19 @@ async fn create() {
 
     repo.fief().fief_by_name("协会横幅").await.unwrap_err();
 
-    let success = repo
+    let id = repo
         .fief()
         .create("协会横幅", Some(chrono::Duration::seconds(419)))
         .await
         .unwrap();
-    assert!(success);
+    assert!(id.is_some());
 
     let result = repo.fief().fief_by_name("协会横幅").await.unwrap();
     let min = cfg().checker.minimum_interval_min as i64;
-    assert_eq!(
-        result.check_interval,
-        chrono::Duration::minutes(6.max(min))
-    );
+    assert_eq!(result.check_interval, chrono::Duration::minutes(6.max(min)));
 
-    let success = repo.fief().create("协会横幅", None).await.unwrap();
-    assert!(!success);
+    let id = repo.fief().create("协会横幅", None).await.unwrap();
+    assert!(id.is_none());
 }
 
 // [R]ead
@@ -66,10 +63,12 @@ async fn id() {
 async fn fief_by_id() {
     let repo = new_repo().await;
 
-    repo.fief().fief_by_id(FiefId(1145141919810)).await.unwrap_err();
+    repo.fief()
+        .fief_by_id(FiefId(1145141919810))
+        .await
+        .unwrap_err();
 
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     let fief = repo.fief().fief_by_id(id).await.unwrap();
     assert_eq!(fief.name, "协会横幅".to_owned());
 }
@@ -80,8 +79,7 @@ async fn fief_by_name() {
 
     repo.fief().fief_by_name("协会横幅").await.unwrap_err();
 
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     let fief = repo.fief().fief_by_name("协会横幅").await.unwrap();
     assert_eq!(fief.id, id);
 }
@@ -138,8 +136,7 @@ async fn fiefs_to_check() {
 #[tokio::test]
 async fn members() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     let members = repo.fief().members(id).await.unwrap();
     assert_eq!(members, vec![]);
@@ -161,8 +158,7 @@ async fn members() {
 #[tokio::test]
 async fn chunks() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     assert!(repo.fief().chunks(id).await.unwrap().is_empty());
 
@@ -178,8 +174,7 @@ async fn chunks() {
 #[tokio::test]
 async fn chunk_count() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     assert_eq!(repo.fief().chunk_count(id).await.unwrap(), 0);
 
@@ -195,20 +190,17 @@ async fn chunk_count() {
 #[tokio::test]
 async fn diff_count() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     assert_eq!(repo.fief().diff_count(id).await.unwrap(), 0);
 
     let pos = Position::new(114, 514);
-    repo.chunk().create("左侧", id, pos).await.unwrap();
-    let chunk_id = repo.chunk().id(id, "左侧").await.unwrap();
+    let chunk_id = repo.chunk().create("左侧", id, pos).await.unwrap().unwrap();
     repo.chunk().update_diff(chunk_id, None, 3).await.unwrap();
     assert_eq!(repo.fief().diff_count(id).await.unwrap(), 3);
 
     let pos = Position::new(114, 515);
-    repo.chunk().create("右侧", id, pos).await.unwrap();
-    let chunk_id = repo.chunk().id(id, "右侧").await.unwrap();
+    let chunk_id = repo.chunk().create("右侧", id, pos).await.unwrap().unwrap();
     repo.chunk().update_diff(chunk_id, None, 4).await.unwrap();
     assert_eq!(repo.fief().diff_count(id).await.unwrap(), 7);
 }
@@ -231,8 +223,7 @@ async fn update_last_check() {
 #[tokio::test]
 async fn set_check_interval() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     repo.fief()
         .set_check_interval(id, chrono::Duration::nanoseconds(1))
@@ -257,35 +248,58 @@ async fn set_check_interval() {
 async fn skip_check() {
     let repo = new_repo().await;
     repo.fief().create("协会横幅", None).await.unwrap();
-    let Fief { skip_check_until, id, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
-    assert_eq!(skip_check_until, chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap());
+    let Fief {
+        skip_check_until,
+        id,
+        ..
+    } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    assert_eq!(
+        skip_check_until,
+        chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap()
+    );
 
     repo.fief().skip_check(id).await.unwrap();
-    let Fief { skip_check_until, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
-    assert_eq!(skip_check_until, chrono::Utc.with_ymd_and_hms(2077, 1, 1, 0, 0, 0).unwrap());
+    let Fief {
+        skip_check_until, ..
+    } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    assert_eq!(
+        skip_check_until,
+        chrono::Utc.with_ymd_and_hms(2077, 1, 1, 0, 0, 0).unwrap()
+    );
 }
 
 #[tokio::test]
 async fn keep_check() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     repo.fief().skip_check(id).await.unwrap();
-    let Fief { skip_check_until, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
-    assert_eq!(skip_check_until, chrono::Utc.with_ymd_and_hms(2077, 1, 1, 0, 0, 0).unwrap());
+    let Fief {
+        skip_check_until, ..
+    } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    assert_eq!(
+        skip_check_until,
+        chrono::Utc.with_ymd_and_hms(2077, 1, 1, 0, 0, 0).unwrap()
+    );
 
     repo.fief().keep_check(id).await.unwrap();
-    let Fief { skip_check_until, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
-    assert_eq!(skip_check_until, chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap());
+    let Fief {
+        skip_check_until, ..
+    } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    assert_eq!(
+        skip_check_until,
+        chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap()
+    );
 }
 
 #[tokio::test]
 async fn skip_check_for() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
-    repo.fief().skip_check_for(id, chrono::Duration::seconds(1), None).await.unwrap();
+    repo.fief()
+        .skip_check_for(id, chrono::Duration::seconds(1), None)
+        .await
+        .unwrap();
     let expect = HashSet::new();
     let actual = repo.fief().fiefs_to_check().await.unwrap();
     assert_eq!(expect, actual.into_iter().collect());
@@ -299,8 +313,7 @@ async fn skip_check_for() {
 #[tokio::test]
 async fn set_name() {
     let repo = new_repo().await;
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let id = repo.fief().id("协会横幅").await.unwrap();
+    let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     repo.fief().set_name(id, "协会横幅#0").await.unwrap();
     let name = repo.fief().name(id).await.unwrap();
@@ -316,8 +329,7 @@ async fn remove_by_id() {
     let repo = new_repo().await;
 
     repo.fief().create("协会横幅", None).await.unwrap();
-    repo.fief().create("布莉姬特", None).await.unwrap();
-    let id = repo.fief().id("布莉姬特").await.unwrap();
+    let id = repo.fief().create("布莉姬特", None).await.unwrap().unwrap();
 
     use std::collections::HashSet;
 

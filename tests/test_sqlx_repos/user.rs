@@ -13,14 +13,14 @@ async fn create() {
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![]);
 
-    let result = repo.user().create(UserId(114514), true).await.unwrap();
-    assert!(result);
+    let id = repo.user().create(UserId(114514), true).await.unwrap();
+    assert!(id.is_some());
 
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![new_user(114514, true)]);
 
-    let result = repo.user().create(UserId(114514), false).await.unwrap();
-    assert!(!result);
+    let id = repo.user().create(UserId(114514), false).await.unwrap();
+    assert!(id.is_none());
 
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![new_user(114514, true)]);
@@ -103,12 +103,11 @@ async fn non_admins() {
 async fn fiefs() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
@@ -122,8 +121,7 @@ async fn fiefs() {
 async fn is_member_of() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
     assert!(!is_member);
@@ -137,8 +135,7 @@ async fn is_member_of() {
 async fn permissions_in() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     let p = Permissions::CHUNK_ALL;
     repo.user().join(UserId(114514), fief_id, Some(p)).await.unwrap();
 
@@ -166,8 +163,7 @@ async fn set_admin() {
 async fn set_permissions_in() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let expect = Permissions::NONE;
     let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
@@ -185,12 +181,11 @@ async fn set_permissions_in() {
 async fn join() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     assert!(success);
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
@@ -206,8 +201,7 @@ async fn join() {
 async fn leave() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
-    repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap();
+    let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);

@@ -3,6 +3,7 @@ use std::io::Cursor;
 use tap::prelude::*;
 use anyhow::Result;
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct ImagePng(Vec<u8>);
 
 impl ImagePng {
@@ -42,6 +43,12 @@ impl ImagePng {
         let mut cursor = Cursor::new(Vec::<u8>::new());
         value.write_to(&mut cursor, image::ImageFormat::Png)?;
         Ok(Self(cursor.into_inner()))
+    }
+}
+
+impl std::fmt::Debug for ImagePng {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ImagePng(bytes...)")
     }
 }
 
