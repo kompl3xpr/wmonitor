@@ -1,3 +1,5 @@
+# Common Options
+# 一般选项
 [common]
 # URL for the SQLite database. If empty, it will use the environment variable 'DATABASE_URL'.
 # SQLite 数据库的 URL。如果为空，将使用环境变量 'DATABASE_URL'。
@@ -8,13 +10,22 @@ database_url = "sqlite://db/wmonitor.db"
 discord_token = ""
 
 
+# Network Options
+# 网络选项
 [network]
+# Time in minutes to cache images requested from wplace.live. 
+# 从 wplace.live 请求到的图片的缓存时间（分钟）。
+# Higher values mean faster checking, fewer network requests, but less timely updates.
+# 数值越大，检查速度越快，网络请求次数越少，但是检查的准时性越差。
+image_cache_min = 2
 # Delay in seconds between requests to avoid being blocked by Cloudflare.
 # 请求之间的延迟时间（秒），以避免被 Cloudflare 阻止。
 sleep_between_requests_sec = 5
 
 
-[checker]
+# Check Options
+# 检查选项
+[check]
 # Minimum interval in minutes for checking each fief.
 # 检查每个封地的最小间隔时间（分钟）。
 minimum_interval_min = 5
@@ -23,6 +34,8 @@ minimum_interval_min = 5
 default_interval_min = 15
 
 
+# Notification Options
+# 通知选项
 [notification]
 # Enable sending notifications.
 # 启用发送通知。
@@ -59,3 +72,23 @@ event_filter = [
     'DIFF_FOUND',
     'CHECK_ERROR',
 ]
+
+
+# Visualization Options
+# 可视化选项
+[visualization]
+# Opacity percentage for difference image
+# 差异图像的不透明度（百分比）
+diff_img_opacity_pct = 85
+
+# Normal pixel color in RGB format
+# 正常像素的RGB颜色
+normal_color = 0xFFFFFF
+
+# Abnormal pixel color in RGB format
+# 异常像素的RGB颜色
+abnormal_color = 0xFF0000
+
+# Unmasked area color in RGB format
+# 未遮罩区域的RGB颜色
+unmasked_color = 0x000000

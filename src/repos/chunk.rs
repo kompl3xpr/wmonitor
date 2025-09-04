@@ -1,10 +1,10 @@
 use crate::domains::FiefId;
-use crate::utils::img::ImagePng;
+use crate::core::{ImagePng, Position};
 use anyhow::Result;
 use async_trait::async_trait;
 
 pub(super) mod domains {
-    use crate::domains::FiefId;
+    use crate::{domains::FiefId, core::Position};
     use serde::{Deserialize, Serialize};
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
@@ -13,27 +13,6 @@ pub(super) mod domains {
     impl From<i64> for ChunkId {
         fn from(value: i64) -> Self {
             Self(value)
-        }
-    }
-
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
-    pub struct Position {
-        pub x: usize,
-        pub y: usize,
-    }
-
-    impl Position {
-        pub fn new(x: usize, y: usize) -> Self {
-            Self { x, y }
-        }
-    }
-
-    impl From<[usize; 2]> for Position {
-        fn from(value: [usize; 2]) -> Self {
-            Self {
-                x: value[0],
-                y: value[1],
-            }
         }
     }
 

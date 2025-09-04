@@ -3,7 +3,8 @@ use chrono::TimeZone;
 use std::collections::HashSet;
 use wmonitor::{
     cfg,
-    domains::{Fief, FiefId, Position, UserId},
+    domains::{Fief, FiefId, UserId},
+    core::Position,
 };
 
 // [C]reate
@@ -21,7 +22,7 @@ async fn create() {
     assert!(id.is_some());
 
     let result = repo.fief().fief_by_name("协会横幅").await.unwrap();
-    let min = cfg().checker.minimum_interval_min as i64;
+    let min = cfg().check.minimum_interval_min as i64;
     assert_eq!(result.check_interval, chrono::Duration::minutes(6.max(min)));
 
     let id = repo.fief().create("协会横幅", None).await.unwrap();
@@ -232,7 +233,7 @@ async fn set_check_interval() {
     let Fief { check_interval, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
     let new = check_interval;
 
-    let min = cfg().checker.minimum_interval_min as i64;
+    let min = cfg().check.minimum_interval_min as i64;
     assert_eq!(new.num_minutes(), min);
 
     repo.fief()

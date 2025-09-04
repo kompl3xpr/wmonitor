@@ -12,3 +12,8 @@ pub use chunk::{Chunk, ChunkWithoutImgs, Position};
 
 mod event;
 pub use event::Event;
+
+pub type CurrentDb = sqlx::Sqlite;
+pub type CurrentRow = <CurrentDb as sqlx::Database>::Row;
+pub type CurrentTypeInfo = <CurrentDb as sqlx::Database>::TypeInfo;
+

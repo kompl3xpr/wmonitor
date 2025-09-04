@@ -1,11 +1,15 @@
-use crate::domains::{Chunk, ChunkId, FiefId, Position};
-use crate::entities;
-use crate::repos::traits::ChunkRepo;
-use crate::utils::{db::*, img::ImagePng};
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
+
 use std::sync::Arc;
+
+use crate::{
+    domains::{Chunk, ChunkId, FiefId},
+    entities,
+    repos::traits::ChunkRepo,
+    core::{ImagePng, Position},
+};
 
 pub struct SqlxChunkRepo(Arc<SqlitePool>);
 
@@ -46,7 +50,7 @@ impl ChunkRepo for SqlxChunkRepo {
         .execute(&*self.0)
         .await;
 
-        Ok(conv_create_result(result)?)
+        Ok(super::conv_create_result(result)?)
     }
 
     // [R]ead

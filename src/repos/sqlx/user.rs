@@ -5,7 +5,6 @@ use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 
 use crate::domains::{FiefId, Permissions, User, UserId};
-use crate::utils::db::*;
 use crate::{entities, repos::traits::UserRepo};
 
 pub struct SqlxUserRepo(Arc<SqlitePool>);
@@ -26,7 +25,7 @@ impl UserRepo for SqlxUserRepo {
             .bind(is_admin)
             .execute(&*self.0)
             .await;
-        Ok(conv_create_result(result)?)
+        Ok(super::conv_create_result(result)?)
     }
 
     async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool> {
@@ -38,7 +37,7 @@ impl UserRepo for SqlxUserRepo {
                 .bind(permissions.bits())
                 .execute(&*self.0)
                 .await;
-        Ok(conv_create_result::<i64>(result)?.is_some())
+        Ok(super::conv_create_result::<i64>(result)?.is_some())
     }
 
     // [R]ead

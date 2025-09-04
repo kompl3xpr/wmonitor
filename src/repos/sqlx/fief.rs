@@ -7,7 +7,6 @@ use std::sync::Arc;
 
 use crate::domains::{ChunkId, Fief, FiefId, UserId};
 use crate::repos::traits::FiefRepo;
-use crate::utils::db::*;
 use crate::{cfg, entities};
 
 pub struct SqlxFiefRepo(Arc<SqlitePool>);
@@ -29,8 +28,8 @@ impl FiefRepo for SqlxFiefRepo {
     ) -> Result<Option<FiefId>> {
         let check_interval = check_interval
             .map(|i| i.num_minutes())
-            .unwrap_or(cfg().checker.default_interval_min as i64);
-        let min_interval = cfg().checker.minimum_interval_min as i64;
+            .unwrap_or(cfg().check.default_interval_min as i64);
+        let min_interval = cfg().check.minimum_interval_min as i64;
         let ago = chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap();
 
         let result = sqlx::query(
@@ -45,7 +44,7 @@ impl FiefRepo for SqlxFiefRepo {
         .execute(&*self.0)
         .await;
 
-        Ok(conv_create_result(result)?)
+        Ok(super::conv_create_result(result)?)
     }
 
     // [R]ead
@@ -197,7 +196,7 @@ impl FiefRepo for SqlxFiefRepo {
     }
 
     async fn set_check_interval(&self, id: FiefId, interval: chrono::Duration) -> Result<()> {
-        let min_interval = cfg().checker.minimum_interval_min as i64;
+        let min_interval = cfg().check.minimum_interval_min as i64;
         sqlx::query("UPDATE Fiefs SET check_interval_min = $1 WHERE id = $2")
             .bind(interval.num_minutes().max(min_interval))
             .bind(id.0)

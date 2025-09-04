@@ -2,6 +2,29 @@ use anyhow::Result;
 use image::{ImageFormat, ImageReader};
 use std::io::Cursor;
 use tap::prelude::*;
+use serde::{Serialize, Deserialize};
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
+pub struct Position {
+    pub x: usize,
+    pub y: usize,
+}
+
+impl Position {
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
+    }
+}
+
+impl From<[usize; 2]> for Position {
+    fn from(value: [usize; 2]) -> Self {
+        Self {
+            x: value[0],
+            y: value[1],
+        }
+    }
+}
+
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ImagePng(Vec<u8>);

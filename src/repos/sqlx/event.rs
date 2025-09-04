@@ -1,7 +1,6 @@
 use crate::domains::{Event, EventId, EventKind};
 use crate::entities;
 use crate::repos::traits::EventRepo;
-use crate::utils::db::*;
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
@@ -29,7 +28,7 @@ impl EventRepo for SqlxEventRepo {
             .execute(&*self.0)
             .await;
 
-        Ok(conv_create_result(result)?)
+        Ok(super::conv_create_result(result)?)
     }
 
     // [R]ead

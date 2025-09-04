@@ -1,8 +1,8 @@
 use super::new_repo;
 use std::collections::HashSet;
 use wmonitor::{
-    domains::{ChunkId, FiefId, Position},
-    utils::img::ImagePng,
+    domains::{ChunkId, FiefId},
+    core::{ImagePng, Position},
 };
 
 // [C]reate
