@@ -6,6 +6,10 @@ use anyhow::Result;
 pub struct ImagePng(Vec<u8>);
 
 impl ImagePng {
+    pub fn into_inner(self) -> Vec<u8> {
+        self.0
+    }
+
     pub fn new(raw_data: Vec<u8>) -> Self {
         raw_data
             .pipe(Self)

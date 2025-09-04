@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use chrono::TimeZone;
 use wmonitor::{
     cfg,
-    domains::{Fief, FiefId, UserId},
+    domains::{Fief, FiefId, Position, UserId},
 };
 
 // [C]reate
@@ -159,13 +159,59 @@ async fn members() {
 }
 
 #[tokio::test]
-async fn chunks() {}
+async fn chunks() {
+    let repo = new_repo().await;
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let id = repo.fief().id("协会横幅").await.unwrap();
+
+    assert!(repo.fief().chunks(id).await.unwrap().is_empty());
+
+    let pos = Position::new(114, 514);
+    repo.chunk().create("左侧", id, pos).await.unwrap();
+    assert_eq!(repo.fief().chunks(id).await.unwrap().len(), 1);
+
+    let pos = Position::new(114, 515);
+    repo.chunk().create("右侧", id, pos).await.unwrap();
+    assert_eq!(repo.fief().chunks(id).await.unwrap().len(), 2);
+}
 
 #[tokio::test]
-async fn chunk_count() {}
+async fn chunk_count() {
+    let repo = new_repo().await;
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let id = repo.fief().id("协会横幅").await.unwrap();
+
+    assert_eq!(repo.fief().chunk_count(id).await.unwrap(), 0);
+
+    let pos = Position::new(114, 514);
+    repo.chunk().create("左侧", id, pos).await.unwrap();
+    assert_eq!(repo.fief().chunk_count(id).await.unwrap(), 1);
+
+    let pos = Position::new(114, 515);
+    repo.chunk().create("右侧", id, pos).await.unwrap();
+    assert_eq!(repo.fief().chunk_count(id).await.unwrap(), 2);
+}
 
 #[tokio::test]
-async fn diff_count() {}
+async fn diff_count() {
+    let repo = new_repo().await;
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let id = repo.fief().id("协会横幅").await.unwrap();
+
+    assert_eq!(repo.fief().diff_count(id).await.unwrap(), 0);
+
+    let pos = Position::new(114, 514);
+    repo.chunk().create("左侧", id, pos).await.unwrap();
+    let chunk_id = repo.chunk().id(id, "左侧").await.unwrap();
+    repo.chunk().update_diff(chunk_id, None, 3).await.unwrap();
+    assert_eq!(repo.fief().diff_count(id).await.unwrap(), 3);
+
+    let pos = Position::new(114, 515);
+    repo.chunk().create("右侧", id, pos).await.unwrap();
+    let chunk_id = repo.chunk().id(id, "右侧").await.unwrap();
+    repo.chunk().update_diff(chunk_id, None, 4).await.unwrap();
+    assert_eq!(repo.fief().diff_count(id).await.unwrap(), 7);
+}
 
 // [U]pdate
 // - self or fields

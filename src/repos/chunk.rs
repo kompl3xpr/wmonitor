@@ -12,13 +12,19 @@ pub(super) mod domains {
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct Position {
-        pub x: i64,
-        pub y: i64,
+        pub x: usize,
+        pub y: usize,
+    }
+
+    impl Position {
+        pub fn new(x: usize, y: usize) -> Self {
+            Self { x, y }
+        }
     }
 
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct Chunk {
-        pub id: i64,
+        pub id: ChunkId,
         pub name: String,
         pub fief_id: FiefId,
         pub position: Position,
@@ -33,10 +39,12 @@ pub trait ChunkRepo {
 
     // [R]ead
     // - self or fields
-    async fn fief(&self, id: ChunkId) -> Result<FiefId>;
-    async fn name(&self, id: ChunkId) -> Result<String>;
-    async fn position(&self, id: ChunkId) -> Result<Position>;
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk>;
+    async fn chunk_by_name(&self, fief_id: FiefId, name: &str) -> Result<Chunk>;
+    async fn fief_id(&self, id: ChunkId) -> Result<FiefId>;
+    async fn name(&self, id: ChunkId) -> Result<String>;
+    async fn id(&self, fief_id: FiefId, name: &str) -> Result<ChunkId>;
+    async fn position(&self, id: ChunkId) -> Result<Position>;
     async fn ref_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn mask_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
@@ -46,9 +54,9 @@ pub trait ChunkRepo {
 
     // [U]pdate
     // - self or fields
-    async fn update_ref_img(&self, id: ChunkId, img: ImagePng) -> Result<()>;
-    async fn update_mask_img(&self, id: ChunkId, img: ImagePng) -> Result<()>;
-    async fn update_diff(&self, id: ChunkId, img: ImagePng, count: usize) -> Result<()>;
+    async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
+    async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
+    async fn update_diff(&self, id: ChunkId, img: Option<ImagePng>, count: usize) -> Result<()>;
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()>;
     async fn set_name(&self, id: ChunkId, name: &str) -> Result<()>;
     // - related
@@ -56,4 +64,6 @@ pub trait ChunkRepo {
 
     // [D]elete
     async fn remove_by_id(&self, id: ChunkId) -> Result<bool>;
+    async fn remove_by_name(&self, fief_id: FiefId, name: &str) -> Result<bool>;
+    async fn remove_all_by_fief(&self, fief_id: FiefId) -> Result<bool>;
 }
