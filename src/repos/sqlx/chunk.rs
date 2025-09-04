@@ -4,7 +4,6 @@ use crate::repos::traits::ChunkRepo;
 use crate::utils::{db::*, img::ImagePng};
 use anyhow::Result;
 use async_trait::async_trait;
-use sqlx::any;
 use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 
