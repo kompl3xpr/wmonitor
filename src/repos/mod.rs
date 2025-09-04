@@ -4,10 +4,10 @@ mod fief;
 mod user;
 
 pub mod domains {
-    pub use super::user::domains::*;
-    pub use super::fief::domains::*;
     pub use super::chunk::domains::*;
     pub use super::event::domains::*;
+    pub use super::fief::domains::*;
+    pub use super::user::domains::*;
 }
 
 pub mod traits {
@@ -17,6 +17,6 @@ pub mod traits {
     pub use super::user::UserRepo;
 }
 
-pub mod sqlx;
 mod repos;
+pub mod sqlx;
 pub use repos::Repositories;

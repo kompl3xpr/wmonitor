@@ -1,5 +1,5 @@
-use tracing::{info, error};
-use wmonitor::{bot, app, cfg, init_cfg, Repositories};
+use tracing::{error, info};
+use wmonitor::{Repositories, app, bot, cfg, init_cfg};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

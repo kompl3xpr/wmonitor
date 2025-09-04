@@ -17,7 +17,6 @@ pub struct Config {
     pub notification: NotificationConfig,
 }
 
-
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CommonConfig {
     pub database_url: String,

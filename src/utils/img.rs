@@ -1,7 +1,7 @@
-use image::{ImageReader, ImageFormat};
+use anyhow::Result;
+use image::{ImageFormat, ImageReader};
 use std::io::Cursor;
 use tap::prelude::*;
-use anyhow::Result;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ImagePng(Vec<u8>);
@@ -12,8 +12,7 @@ impl ImagePng {
     }
 
     pub fn new(raw_data: Vec<u8>) -> Self {
-        raw_data
-            .pipe(Self)
+        raw_data.pipe(Self)
     }
 
     fn to_reader(self) -> ImageReader<Cursor<Vec<u8>>> {

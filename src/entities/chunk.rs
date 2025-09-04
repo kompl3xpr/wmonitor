@@ -30,7 +30,7 @@ pub struct ChunkWithoutImgs {
 
     #[sqlx(flatten)]
     pub position: Position,
-    
+
     pub diff_count: i64,
 }
 

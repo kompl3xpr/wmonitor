@@ -30,7 +30,10 @@ pub(super) mod domains {
 
     impl From<[usize; 2]> for Position {
         fn from(value: [usize; 2]) -> Self {
-            Self { x: value[0], y: value[1] }
+            Self {
+                x: value[0],
+                y: value[1],
+            }
         }
     }
 

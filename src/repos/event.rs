@@ -1,9 +1,9 @@
-use async_trait::async_trait;
 use anyhow::Result;
+use async_trait::async_trait;
 
 pub(super) mod domains {
-    use serde::{Deserialize, Serialize};
     use crate::domains::{FiefId, UserId};
+    use serde::{Deserialize, Serialize};
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
     pub struct EventId(pub i64);
@@ -43,7 +43,7 @@ pub(super) mod domains {
         fief: FiefId,
         who: UserId,
         until: chrono::DateTime<chrono::Utc>,
-    }  
+    }
 
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct SkipCheckEndEvent {
@@ -77,11 +77,10 @@ pub trait EventRepo {
 
     // [U]pdate
     // *PASS*
-    
+
     // [D]elete
     async fn remove_by_id(&self, id: EventId) -> Result<bool>;
     async fn remove_all_by_kind(&self, kind: &str) -> Result<bool>;
     async fn remove_all_before(&self, date: chrono::DateTime<chrono::Utc>) -> Result<bool>;
     async fn remove_all(&self) -> Result<bool>;
 }
-

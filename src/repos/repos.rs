@@ -11,7 +11,7 @@ pub struct Repositories {
 }
 
 impl Repositories {
-    pub async fn from_sqlx(url :&str) -> Result<Self> {
+    pub async fn from_sqlx(url: &str) -> Result<Self> {
         let options = SqliteConnectOptions::from_str(&url)?.create_if_missing(true);
         let pool = Arc::new(SqlitePool::connect_with(options).await?);
 

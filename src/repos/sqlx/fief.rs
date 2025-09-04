@@ -22,7 +22,11 @@ impl SqlxFiefRepo {
 #[async_trait]
 impl FiefRepo for SqlxFiefRepo {
     // [C]reate
-    async fn create(&self, name: &str, check_interval: Option<chrono::Duration>) -> Result<Option<FiefId>> {
+    async fn create(
+        &self,
+        name: &str,
+        check_interval: Option<chrono::Duration>,
+    ) -> Result<Option<FiefId>> {
         let check_interval = check_interval
             .map(|i| i.num_minutes())
             .unwrap_or(cfg().checker.default_interval_min as i64);

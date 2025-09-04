@@ -4,8 +4,9 @@ pub type CurrentTypeInfo = <CurrentDb as sqlx::Database>::TypeInfo;
 
 use sqlx::sqlite::SqliteQueryResult;
 
-
-pub fn conv_create_result<Id>(result: Result<SqliteQueryResult, sqlx::Error>) -> Result<Option<Id>, sqlx::Error>
+pub fn conv_create_result<Id>(
+    result: Result<SqliteQueryResult, sqlx::Error>,
+) -> Result<Option<Id>, sqlx::Error>
 where
     Id: From<i64>,
 {

@@ -1,7 +1,6 @@
 use tap::prelude::*;
 use toml_edit::{Datetime, DocumentMut, Formatted, Value, visit_mut::VisitMut};
 
-
 pub struct DocUpdater {
     to_be_merged: DocumentMut,
     path: Vec<String>,

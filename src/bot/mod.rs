@@ -39,6 +39,8 @@ pub async fn new_client() -> anyhow::Result<serenity::Client> {
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let result = Client::builder(&token, intents).event_handler(Handler).await?;
+    let result = Client::builder(&token, intents)
+        .event_handler(Handler)
+        .await?;
     Ok(result)
 }

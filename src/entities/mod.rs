@@ -8,7 +8,7 @@ mod member;
 pub use member::Member;
 
 mod chunk;
-pub use chunk::{Chunk, Position, ChunkWithoutImgs};
+pub use chunk::{Chunk, ChunkWithoutImgs, Position};
 
 mod event;
 pub use event::Event;
