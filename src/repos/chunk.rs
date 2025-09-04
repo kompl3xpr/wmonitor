@@ -29,7 +29,7 @@ use domains::*;
 #[async_trait]
 pub trait ChunkRepo {
     // [C]reate
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<()>;
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<bool>;
 
     // [R]ead
     // - self or fields

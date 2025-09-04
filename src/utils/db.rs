@@ -21,14 +21,3 @@ pub fn conv_create_result(result: Result<SqliteQueryResult, sqlx::Error>) -> any
         }
     }
 }
-
-pub fn conv_fetch_one_result<T>(result: Result<T, sqlx::Error>) -> anyhow::Result<Option<T>> {
-    match result {
-        Ok(value) => Ok(Some(value)),
-        Err(sqlx::Error::RowNotFound) => Ok(None),
-        other_err => {
-            other_err?;
-            unreachable!();
-        }
-    }
-}

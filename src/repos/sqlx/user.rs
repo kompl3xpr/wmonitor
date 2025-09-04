@@ -43,18 +43,16 @@ impl UserRepo for SqlxUserRepo {
 
     // [R]ead
     // - self or fields
-    async fn user_by_id(&self, id: UserId) -> Result<Option<User>> {
-        let result = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
+    async fn user_by_id(&self, id: UserId) -> Result<User> {
+        let result: entities::User = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
             .bind(id.0)
             .fetch_one(&*self.0)
-            .await;
+            .await?;
 
-        let user: Option<entities::User> = conv_fetch_one_result(result)?;
-
-        Ok(user.map(|u| User {
-            id: UserId(u.id),
-            is_admin: u.is_admin,
-        }))
+        Ok(User {
+            id: UserId(result.id),
+            is_admin: result.is_admin,
+        })
     }
 
     async fn all(&self) -> Result<Vec<User>> {

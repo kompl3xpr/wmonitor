@@ -18,7 +18,7 @@ impl SqlxChunkRepo {
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
     // [C]reate
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<()> {
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<bool> {
         todo!()
     }
 

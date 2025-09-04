@@ -19,7 +19,6 @@ async fn create() {
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![new_user(114514, true)]);
 
-    // expect: error
     let result = repo.user().create(UserId(114514), false).await.unwrap();
     assert!(!result);
 
@@ -31,13 +30,12 @@ async fn create() {
 async fn user_by_id() {
     let repo = new_repo().await;
 
-    let user = repo.user().user_by_id(UserId(114514)).await.unwrap();
-    assert_eq!(user, None);
+    repo.user().user_by_id(UserId(114514)).await.unwrap_err();
 
     repo.user().create(UserId(114514), true).await.unwrap();
 
     let user = repo.user().user_by_id(UserId(114514)).await.unwrap();
-    assert_eq!(user, Some(new_user(114514, true)));
+    assert_eq!(user, new_user(114514, true));
 }
 
 #[tokio::test]
@@ -110,7 +108,7 @@ async fn fiefs() {
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);
@@ -125,7 +123,7 @@ async fn is_member_of() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
 
     let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
     assert!(!is_member);
@@ -140,7 +138,7 @@ async fn permissions_in() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     let p = Permissions::CHUNK_ALL;
     repo.user().join(UserId(114514), fief_id, Some(p)).await.unwrap();
 
@@ -156,11 +154,11 @@ async fn set_admin() {
     repo.user().set_admin(UserId(114514), true).await.unwrap();
 
     repo.user().create(UserId(114514), false).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap().unwrap();
+    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
     assert!(!is_admin);
 
     repo.user().set_admin(UserId(114514), true).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap().unwrap();
+    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
     assert!(is_admin);
 }
 
@@ -169,7 +167,7 @@ async fn set_permissions_in() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let expect = Permissions::NONE;
     let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
@@ -192,7 +190,7 @@ async fn join() {
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![]);
 
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     assert!(success);
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
@@ -209,7 +207,7 @@ async fn leave() {
     let repo = new_repo().await;
     repo.user().create(UserId(114514), false).await.unwrap();
     repo.fief().create("协会横幅", None).await.unwrap();
-    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap();
     repo.user().join(UserId(114514), fief_id, None).await.unwrap();
     let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
     assert_eq!(actual, vec![fief_id]);

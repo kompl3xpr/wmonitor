@@ -53,7 +53,7 @@ pub trait UserRepo {
     
     // [R]ead
     // - self or fields
-    async fn user_by_id(&self, id: UserId) -> Result<Option<User>>;
+    async fn user_by_id(&self, id: UserId) -> Result<User>;
     async fn all(&self) -> Result<Vec<User>>;
     async fn admins(&self) -> Result<Vec<User>>;
     async fn non_admins(&self) -> Result<Vec<User>>;
