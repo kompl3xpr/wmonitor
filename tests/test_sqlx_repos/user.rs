@@ -1,9 +1,5 @@
-use wmonitor::Repositories;
-use wmonitor::domains::{User, UserId};
-
-async fn new_repo() -> Repositories {
-    Repositories::from_sqlx("sqlite::memory:").await.unwrap()
-}
+use wmonitor::domains::{Permissions, User, UserId};
+use super::new_repo;
 
 fn new_user(id: i64, is_admin: bool) -> User {
     let id = UserId(id);
@@ -17,14 +13,15 @@ async fn create() {
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![]);
 
-    // expect: ok
-    repo.user().create(UserId(114514), true).await.unwrap();
+    let result = repo.user().create(UserId(114514), true).await.unwrap();
+    assert!(result);
 
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![new_user(114514, true)]);
 
     // expect: error
-    repo.user().create(UserId(114514), false).await.unwrap_err();
+    let result = repo.user().create(UserId(114514), false).await.unwrap();
+    assert!(!result);
 
     let users = repo.user().all().await.unwrap();
     assert_eq!(users, vec![new_user(114514, true)]);
@@ -33,14 +30,14 @@ async fn create() {
 #[tokio::test]
 async fn user_by_id() {
     let repo = new_repo().await;
-    // expect: error
-    repo.user().user_by_id(UserId(114514)).await.unwrap_err();
+
+    let user = repo.user().user_by_id(UserId(114514)).await.unwrap();
+    assert_eq!(user, None);
 
     repo.user().create(UserId(114514), true).await.unwrap();
 
-    // expect: ok
     let user = repo.user().user_by_id(UserId(114514)).await.unwrap();
-    assert_eq!(user, new_user(114514, true))
+    assert_eq!(user, Some(new_user(114514, true)));
 }
 
 #[tokio::test]
@@ -105,42 +102,128 @@ async fn non_admins() {
 }
 
 #[tokio::test]
-async fn fiefs() {}
+async fn fiefs() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![]);
+
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![fief_id]);
+
+    repo.user().leave(UserId(114514), fief_id).await.unwrap();
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![]);
+}
 
 #[tokio::test]
-async fn is_member_of() {}
+async fn is_member_of() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+
+    let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
+    assert!(!is_member);
+
+    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let is_member = repo.user().is_member_of(UserId(114514), fief_id).await.unwrap();
+    assert!(is_member);
+}
 
 #[tokio::test]
-async fn permissions_in() {}
+async fn permissions_in() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let p = Permissions::CHUNK_ALL;
+    repo.user().join(UserId(114514), fief_id, Some(p)).await.unwrap();
+
+    let expect = Permissions::CHUNK_ADD | Permissions::CHUNK_EDIT | Permissions::CHUNK_DELETE;
+    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    assert_eq!(actual, expect);
+}
 
 #[tokio::test]
 async fn set_admin() {
     let repo = new_repo().await;
     
-    let result = repo.user().set_admin(UserId(114514), true).await.unwrap();
-    assert!(!result);
+    repo.user().set_admin(UserId(114514), true).await.unwrap();
 
     repo.user().create(UserId(114514), false).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
+    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap().unwrap();
     assert!(!is_admin);
 
-    let result = repo.user().set_admin(UserId(114514), true).await.unwrap();
-    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap();
-    assert!(result);
+    repo.user().set_admin(UserId(114514), true).await.unwrap();
+    let User {is_admin, ..} = repo.user().user_by_id(UserId(114514)).await.unwrap().unwrap();
     assert!(is_admin);
-
-    let result = repo.user().set_admin(UserId(114514), true).await.unwrap();
-    assert!(result);
 }
 
 #[tokio::test]
-async fn set_permissions_in() {}
+async fn set_permissions_in() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let expect = Permissions::NONE;
+    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    assert_eq!(actual, expect);
+
+    let p = Permissions::ALL - Permissions::MEMBER_KICK - Permissions::MEMBER_EDIT_PERMS;
+    repo.user().set_permissions_in(UserId(114514), fief_id, p).await.unwrap();
+
+    let expect = Permissions::FIEF_ALL | Permissions::CHUNK_ALL | Permissions::MEMBER_INVITE;
+    let actual = repo.user().permissions_in(UserId(114514), fief_id).await.unwrap();
+    assert_eq!(actual, expect);
+}
 
 #[tokio::test]
-async fn join() {}
+async fn join() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![]);
+
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    assert!(success);
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![fief_id]);
+
+    let success = repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    assert!(!success);
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![fief_id]);
+}
 
 #[tokio::test]
-async fn leave() {}
+async fn leave() {
+    let repo = new_repo().await;
+    repo.user().create(UserId(114514), false).await.unwrap();
+    repo.fief().create("协会横幅", None).await.unwrap();
+    let fief_id = repo.fief().id("协会横幅").await.unwrap().unwrap();
+    repo.user().join(UserId(114514), fief_id, None).await.unwrap();
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![fief_id]);
+
+    let success = repo.user().leave(UserId(114514), fief_id).await.unwrap();
+    assert!(success);
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![]);
+
+    let success = repo.user().leave(UserId(114514), fief_id).await.unwrap();
+    assert!(!success);
+    let actual = repo.user().fiefs(UserId(114514)).await.unwrap();
+    assert_eq!(actual, vec![]);
+}
 
 #[tokio::test]
 async fn remove_by_id() {

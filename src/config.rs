@@ -31,6 +31,7 @@ pub struct NetworkConfig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CheckerConfig {
+    pub minimum_interval_min: usize,
     pub default_interval_min: usize,
 }
 

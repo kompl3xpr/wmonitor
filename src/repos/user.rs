@@ -48,11 +48,12 @@ use domains::*;
 #[async_trait]
 pub trait UserRepo {
     // [C]reate
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<()>;
+    async fn create(&self, id: UserId, is_admin: bool) -> Result<bool>;
+    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
     
     // [R]ead
     // - self or fields
-    async fn user_by_id(&self, id: UserId) -> Result<User>;
+    async fn user_by_id(&self, id: UserId) -> Result<Option<User>>;
     async fn all(&self) -> Result<Vec<User>>;
     async fn admins(&self) -> Result<Vec<User>>;
     async fn non_admins(&self) -> Result<Vec<User>>;
@@ -63,14 +64,13 @@ pub trait UserRepo {
     
     // [U]pdate
     // - self or fields
-    async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<bool>;
+    async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()>;
     // - related
-    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<bool>;
-    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
-    async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
+    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
     
     // [D]elete
     async fn remove_by_id(&self, id: UserId) -> Result<bool>;
+    async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
 }
 
 

@@ -22,14 +22,14 @@ use domains::*;
 #[async_trait]
 pub trait FiefRepo {
     // [C]reate
-    async fn create(&self, name: &str, check_dur: chrono::Duration) -> Result<bool>;
+    async fn create(&self, name: &str, check_interval: Option<chrono::Duration>) -> Result<bool>;
     
     // [R]ead
     // - self or fields
-    async fn name(&self, id: FiefId) -> Result<String>;
-    async fn id(&self, name: &str) -> Result<FiefId>;
-    async fn fief_by_id(&self, id: FiefId) -> Result<Fief>;
-    async fn fief_by_name(&self, name: &str) -> Result<Fief>;
+    async fn name(&self, id: FiefId) -> Result<Option<String>>;
+    async fn id(&self, name: &str) -> Result<Option<FiefId>>;
+    async fn fief_by_id(&self, id: FiefId) -> Result<Option<Fief>>;
+    async fn fief_by_name(&self, name: &str) -> Result<Option<Fief>>;
     async fn fiefs_to_check(&self) -> Result<Vec<Fief>>;
     async fn all(&self) -> Result<Vec<Fief>>;
     // - related
@@ -50,7 +50,7 @@ pub trait FiefRepo {
 
     // [D]elete
     async fn remove_by_id(&self, id: FiefId) -> Result<bool>;
-    async fn remove_by_name(&self, id: FiefId) -> Result<bool>;
+    async fn remove_by_name(&self, name: &str) -> Result<bool>;
 }
 
 

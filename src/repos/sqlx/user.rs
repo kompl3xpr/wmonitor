@@ -1,9 +1,12 @@
-use crate::domains::{FiefId, Permissions, User, UserId};
-use crate::{entities, repos::traits::UserRepo};
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
+
 use std::sync::Arc;
+
+use crate::domains::{FiefId, Permissions, User, UserId};
+use crate::utils::db::*;
+use crate::{entities, repos::traits::UserRepo};
 
 pub struct SqlxUserRepo(Arc<SqlitePool>);
 
@@ -17,26 +20,41 @@ impl SqlxUserRepo {
 #[async_trait]
 impl UserRepo for SqlxUserRepo {
     // [C]reate
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<()> {
+    async fn create(&self, id: UserId, is_admin: bool) -> Result<bool> {
         let result = sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
             .bind(id.0)
             .bind(is_admin)
             .execute(&*self.0)
-            .await?;
-        Ok(())
+            .await;
+        Ok(conv_create_result(result)?)
+    }
+
+    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool> {
+        let permissions = p.unwrap_or(Permissions::NONE);
+        let result =
+            sqlx::query("INSERT INTO Members (user_id, fief_id, permissions) VALUES ($1, $2, $3)")
+                .bind(id.0)
+                .bind(fief_id.0)
+                .bind(permissions.bits())
+                .execute(&*self.0)
+                .await;
+        Ok(conv_create_result(result)?)
     }
 
     // [R]ead
     // - self or fields
-    async fn user_by_id(&self, id: UserId) -> Result<User> {
-        let user: entities::User = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
+    async fn user_by_id(&self, id: UserId) -> Result<Option<User>> {
+        let result = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
             .bind(id.0)
             .fetch_one(&*self.0)
-            .await?;
-        Ok(User {
-            id: UserId(user.id),
-            is_admin: user.is_admin,
-        })
+            .await;
+
+        let user: Option<entities::User> = conv_fetch_one_result(result)?;
+
+        Ok(user.map(|u| User {
+            id: UserId(u.id),
+            is_admin: u.is_admin,
+        }))
     }
 
     async fn all(&self) -> Result<Vec<User>> {
@@ -106,54 +124,33 @@ impl UserRepo for SqlxUserRepo {
                 .bind(fief_id.0)
                 .fetch_one(&*self.0)
                 .await?;
-        Ok(Permissions::from_bits(p).unwrap())
+        Ok(Permissions::from_bits(p)
+            .ok_or(anyhow::anyhow!("failed to parse permissions from database"))?)
     }
 
     // [U]pdate
     // - self or fields
-    async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<bool> {
-        let result = sqlx::query("UPDATE Users SET is_admin = TRUE WHERE id = $1")
+    async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()> {
+        sqlx::query("UPDATE Users SET is_admin = TRUE WHERE id = $1 AND is_admin = FALSE")
             .bind(id.0)
             .execute(&*self.0)
             .await?;
 
-        Ok(result.rows_affected() == 1)
+        Ok(())
     }
 
     // - related
-    async fn set_permissions_in(
-        &self,
-        id: UserId,
-        fief_id: FiefId,
-        p: Permissions,
-    ) -> Result<bool> {
-        let result =
-            sqlx::query("UPDATE Members SET permissions = $1 WHERE user_id = $2 AND fief_id = $3")
-                .bind(p.bits())
-                .bind(id.0)
-                .bind(fief_id.0)
-                .execute(&*self.0)
-                .await?;
-        Ok(result.rows_affected() == 1)
+    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()> {
+        sqlx::query("UPDATE Members SET permissions = $1 WHERE user_id = $2 AND fief_id = $3")
+            .bind(p.bits())
+            .bind(id.0)
+            .bind(fief_id.0)
+            .execute(&*self.0)
+            .await?;
+        Ok(())
     }
 
-    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool> {
-        let is_admin = self.user_by_id(id).await?.is_admin;
-        let permissions = p.unwrap_or(if is_admin {
-            Permissions::ALL
-        } else {
-            Permissions::NONE
-        });
-        let result =
-            sqlx::query("INSERT INTO Members (user_id, fief_id, permissions) VALUES ($1, $2, $3)")
-                .bind(id.0)
-                .bind(fief_id.0)
-                .bind(permissions.bits())
-                .execute(&*self.0)
-                .await?;
-        Ok(result.rows_affected() == 1)
-    }
-
+    // [D]elete
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool> {
         let result = sqlx::query("DELETE FROM Members WHERE user_id = $1 AND fief_id = $2")
             .bind(id.0)
@@ -163,7 +160,6 @@ impl UserRepo for SqlxUserRepo {
         Ok(result.rows_affected() == 1)
     }
 
-    // [D]elete
     async fn remove_by_id(&self, id: UserId) -> Result<bool> {
         let result = sqlx::query("DELETE FROM Users WHERE id = $1")
             .bind(id.0)

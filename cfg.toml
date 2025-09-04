@@ -15,6 +15,9 @@ sleep_between_requests_sec = 5
 
 
 [checker]
+# Minimum interval in minutes for checking each fief.
+# 检查每个封地的最小间隔时间（分钟）。
+minimum_interval_min = 5
 # Default interval in minutes for checking each fief.
 # 检查每个封地的默认间隔时间（分钟）。
 default_interval_min = 15
