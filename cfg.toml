@@ -13,11 +13,14 @@ discord_token = ""
 # Network Options
 # 网络选项
 [network]
+# Max capacity of cache images. 
+# 图片缓存的最大容量。
+image_cache_capacity = 64
 # Time in minutes to cache images requested from wplace.live. 
 # 从 wplace.live 请求到的图片的缓存时间（分钟）。
 # Higher values mean faster checking, fewer network requests, but less timely updates.
 # 数值越大，检查速度越快，网络请求次数越少，但是检查的准时性越差。
-image_cache_min = 2
+image_cache_life_min = 2
 # Delay in seconds between requests to avoid being blocked by Cloudflare.
 # 请求之间的延迟时间（秒），以避免被 Cloudflare 阻止。
 sleep_between_requests_sec = 5

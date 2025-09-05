@@ -25,7 +25,8 @@ pub struct CommonConfig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct NetworkConfig {
-    pub image_cache_min: usize,
+    pub image_cache_capacity: usize,
+    pub image_cache_life_min: usize,
     pub sleep_between_requests_sec: usize,
 }
 
