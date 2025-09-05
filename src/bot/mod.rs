@@ -32,14 +32,12 @@ impl EventHandler for Handler {
     }
 }
 
-pub async fn new_client() -> anyhow::Result<serenity::Client> {
-    let token = std::env::var("DISCORD_TOKEN")?;
-
+pub async fn new_client(token: &impl AsRef<str>) -> anyhow::Result<serenity::Client> {
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let result = Client::builder(&token, intents)
+    let result = Client::builder(token.as_ref(), intents)
         .event_handler(Handler)
         .await?;
     Ok(result)

@@ -1,19 +1,42 @@
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use wmonitor::{Repositories, app, bot, cfg, config::init_cfg};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().init();
-    dotenv::dotenv()?;
+    info!("starting logging...");
+
+    info!("attempting to get environment variables from `.env`(if exists)...");
+    if let Err(e) = dotenv::dotenv() {
+        warn!("failed to apply `.env`: {e}");
+    }
+
+    info!("initializing configurations...");
     init_cfg();
+    info!("loaded configurations:\n{:#?}", cfg());
 
-    // let wmonitor = app::WMonitor::builder()
-    //     .bot(bot::new_client().await?)
-    //     .repo(Repositories::from_sqlx(&datebase_url()).await?)
-    //     .build();
+    let wmonitor = app::WMonitor::builder()
+        .bot(bot::new_client(&discord_token()).await?)
+        .repo(Repositories::from_sqlx(&datebase_url()).await?)
+        .build();
 
-    // wmonitor.run().await?;
+    wmonitor.run().await?;
     Ok(())
+}
+
+
+fn discord_token() -> String {
+    let token = cfg().common.discord_token.clone();
+    match token.is_empty() {
+        true => {
+            info!("attempting to use environment variable `DISCORD_TOKEN`...");
+            std::env::var("DISCORD_TOKEN").unwrap_or_else(|e| {
+                error!("failed to get variable `DISCORD_TOKEN`: {e}");
+                panic!();
+            })
+        }
+        _ => token,
+    }
 }
 
 fn datebase_url() -> String {

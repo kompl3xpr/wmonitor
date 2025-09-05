@@ -148,18 +148,7 @@ async fn all_before() {
 async fn remove_by_id() {
     let repo = new_repo().await;
 
-    let kinds = Vec::<EventKind>::from_iter([
-        EventKind::DiffFound(DiffFoundEvent {
-            fief: FiefId(114514),
-            diff_count: 99,
-        }),
-        EventKind::CheckError(CheckErrorEvent {
-            fief: FiefId(1919),
-            description: "network error".to_owned(),
-        }),
-        EventKind::AppStop,
-    ]);
-
+    let kinds = kinds();
     repo.event().save(kinds[0].clone()).await.unwrap();
     repo.event().save(kinds[1].clone()).await.unwrap();
     let id = repo.event().save(kinds[2].clone()).await.unwrap().unwrap();
@@ -213,7 +202,6 @@ async fn remove_all_before() {
     let repo = new_repo().await;
 
     let kinds = kinds();
-
     repo.event().save(kinds[0].clone()).await.unwrap();
     repo.event().save(kinds[1].clone()).await.unwrap();
     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
@@ -238,7 +226,6 @@ async fn remove_all() {
     let repo = new_repo().await;
 
     let kinds = kinds();
-
     repo.event().save(kinds[0].clone()).await.unwrap();
     repo.event().save(kinds[1].clone()).await.unwrap();
     repo.event().save(kinds[2].clone()).await.unwrap().unwrap();

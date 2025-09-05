@@ -1,5 +1,5 @@
 pub mod config;
-pub use config::cfg;
+pub use config::{cfg, save_cfg_with};
 
 pub mod entities;
 
