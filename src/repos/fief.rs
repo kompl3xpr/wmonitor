@@ -27,6 +27,8 @@ use domains::*;
 
 #[async_trait]
 pub trait FiefRepo {
+    fn clone(&self) -> Box<dyn FiefRepo>;
+
     // [C]reate
     async fn create(
         &self,

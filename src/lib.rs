@@ -10,8 +10,10 @@ pub mod domains {
     pub use crate::repos::domains::*;
 }
 
-pub mod core;
 pub mod app;
 pub mod bot;
 pub mod checker;
 pub mod commands;
+pub mod core;
+
+pub mod net;

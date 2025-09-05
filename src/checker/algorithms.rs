@@ -1,10 +1,41 @@
 use anyhow::Result;
-use image::{GenericImage, GenericImageView, GrayImage, Pixel, RgbaImage};
+use image::{GenericImageView, GrayImage, Pixel, RgbaImage, imageops::FilterType};
 use rayon::prelude::*;
 
-use super::{Diff, DiffRecord, ScopeRect};
-use crate::{cfg, core::Position};
+use crate::{
+    cfg,
+    core::{Position, WPLACE_CHUNK_HEIGHT, WPLACE_CHUNK_WIDTH},
+};
 use std::ops::Add;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DiffRecord {
+    pub diffs: Vec<Diff>,
+    pub diff_img: image::GrayImage,
+    scope_rect: ScopeRect,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Diff {
+    pub pos: Position,
+    pub curr_px: [u8; 4],
+    pub ref_px: [u8; 4],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct ScopeRect {
+    left_top: Position,
+    right_bottom: Position,
+}
+
+impl Default for ScopeRect {
+    fn default() -> Self {
+        ScopeRect {
+            left_top: Position::new(0, 0),
+            right_bottom: Position::new(0, 0),
+        }
+    }
+}
 
 pub fn find_diffs(ref_: &RgbaImage, mask: &GrayImage, curr: &RgbaImage) -> Result<DiffRecord> {
     let (r, m, c) = (ref_, mask, curr);
@@ -86,25 +117,44 @@ pub fn gen_visual_result(
             *o = mix(*r, a);
         });
 
-    let ScopeRect {
-        left_top,
-        right_bottom,
-    } = rec.scope_rect;
-    let (min_w, min_h, margin_x, margin_y) = (64, 64, 2, 2);
-    let (scp_w, scp_h) = (
-        1000.min(right_bottom.x - left_top.x + 1 + margin_x * 2),
-        1000.min(right_bottom.y - left_top.y + 1 + margin_y * 2),
-    );
-    let (w, h, x, y) = (
-        min_w.max(scp_w),
-        min_h.max(scp_h),
-        left_top.x,
-        left_top.y,
-    );
+    let [x, y, w, h] = get_sub_image_params(rec.scope_rect);
+    let out = out.view(x, y, w, h).to_image();
+    let factor = WPLACE_CHUNK_WIDTH as u32 / w;
+    Ok(image::imageops::resize(
+        &out,
+        w * factor,
+        h * factor,
+        FilterType::Nearest,
+    ))
+}
 
-    Ok(out
-        .view(x as u32, y as u32, w as u32, h as u32)
-        .to_image())
+fn get_sub_image_params(scp: ScopeRect) -> [u32; 4] {
+    let (min_w, min_h, margin_x, margin_y) = (
+        cfg().visualization.minimum_width,
+        cfg().visualization.minimum_height,
+        cfg().visualization.horizontal_margin,
+        cfg().visualization.vertical_margin,
+    );
+    let (scp_w, scp_h) = (
+        WPLACE_CHUNK_WIDTH.min(scp.right_bottom.x - scp.left_top.x + 1 + margin_x * 2),
+        WPLACE_CHUNK_HEIGHT.min(scp.right_bottom.y - scp.left_top.y + 1 + margin_y * 2),
+    );
+    let (w, h) = (min_w.max(scp_w), min_h.max(scp_h));
+    let (x_mov, y_mov) = (
+        (margin_x + min_w.saturating_sub(scp_w) / 2) as isize,
+        (margin_y + min_h.saturating_sub(scp_h) / 2) as isize,
+    );
+    let (x1, y1, x2, y2) = (
+        scp.left_top.x as isize - x_mov,
+        scp.left_top.y as isize - y_mov,
+        scp.right_bottom.x as isize - x_mov,
+        scp.right_bottom.y as isize - y_mov,
+    );
+    let (cw, ch) = (WPLACE_CHUNK_WIDTH as isize, WPLACE_CHUNK_HEIGHT as isize);
+
+    let x = if x2 >= cw { x1 - x2 + cw - 1 } else { x1 };
+    let y = if y2 >= ch { y1 - y2 + ch - 1 } else { y1 };
+    [x.max(0) as u32, y.max(0) as u32, w as u32, h as u32]
 }
 
 fn calc_scope_rect(diffs: &[Diff]) -> ScopeRect {

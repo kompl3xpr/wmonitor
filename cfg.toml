@@ -92,3 +92,19 @@ abnormal_color = 0xFF0000
 # Unmasked area color in RGB format
 # 未遮罩区域的RGB颜色
 unmasked_color = 0x000000
+
+# Minimum width in pixels for the visualization result
+# 可视化结果的最小像素宽度
+minimum_width = 80
+
+# Minimum height in pixels for the visualization result
+# 可视化结果的最小像素高度
+minimum_height = 60
+
+# Horizontal margin in pixels for the visualization result
+# 可视化结果的水平边缘大小
+horizontal_margin = 8
+
+# Vertical margin in pixels for the visualization result
+# 可视化结果的垂直边缘大小
+vertical_margin = 6

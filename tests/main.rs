@@ -1,2 +1,2 @@
-mod test_sqlx_repos;
 mod checker;
+mod test_sqlx_repos;

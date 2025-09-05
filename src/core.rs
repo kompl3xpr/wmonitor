@@ -1,8 +1,11 @@
 use anyhow::Result;
 use image::{ImageFormat, ImageReader};
+use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 use tap::prelude::*;
-use serde::{Serialize, Deserialize};
+
+pub const WPLACE_CHUNK_WIDTH: usize = 1000;
+pub const WPLACE_CHUNK_HEIGHT: usize = 1000;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Position {
@@ -24,7 +27,6 @@ impl From<[usize; 2]> for Position {
         }
     }
 }
-
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ImagePng(Vec<u8>);

@@ -1,4 +1,4 @@
-use crate::domains::FiefId;
+use crate::{domains::FiefId, repos::traits};
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -53,6 +53,8 @@ use domains::*;
 
 #[async_trait]
 pub trait UserRepo {
+    fn clone(&self) -> Box<dyn UserRepo>;
+
     // [C]reate
     async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>>;
     async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;

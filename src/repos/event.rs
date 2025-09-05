@@ -98,6 +98,8 @@ use domains::*;
 
 #[async_trait]
 pub trait EventRepo {
+    fn clone(&self) -> Box<dyn EventRepo>;
+
     // [C]reate
     async fn save(&self, kind: EventKind) -> Result<Option<EventId>>;
 

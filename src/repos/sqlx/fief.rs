@@ -20,6 +20,10 @@ impl SqlxFiefRepo {
 #[allow(unused)]
 #[async_trait]
 impl FiefRepo for SqlxFiefRepo {
+    fn clone(&self) -> Box<dyn FiefRepo> {
+        Box::new(Self(Arc::clone(&self.0)))
+    }
+
     // [C]reate
     async fn create(
         &self,

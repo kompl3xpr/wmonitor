@@ -1,10 +1,10 @@
-use crate::domains::FiefId;
 use crate::core::{ImagePng, Position};
+use crate::domains::FiefId;
 use anyhow::Result;
 use async_trait::async_trait;
 
 pub(super) mod domains {
-    use crate::{domains::FiefId, core::Position};
+    use crate::{core::Position, domains::FiefId};
     use serde::{Deserialize, Serialize};
 
     #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
@@ -28,6 +28,8 @@ use domains::*;
 
 #[async_trait]
 pub trait ChunkRepo {
+    fn clone(&self) -> Box<dyn ChunkRepo>;
+
     // [C]reate
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>>;
 

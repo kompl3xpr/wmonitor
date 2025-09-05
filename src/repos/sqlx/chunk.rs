@@ -5,10 +5,10 @@ use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 
 use crate::{
+    core::{ImagePng, Position},
     domains::{Chunk, ChunkId, FiefId},
     entities,
     repos::traits::ChunkRepo,
-    core::{ImagePng, Position},
 };
 
 pub struct SqlxChunkRepo(Arc<SqlitePool>);
@@ -22,6 +22,10 @@ impl SqlxChunkRepo {
 #[allow(unused)]
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
+    fn clone(&self) -> Box<dyn ChunkRepo> {
+        Box::new(Self(Arc::clone(&self.0)))
+    }
+
     // [C]reate
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>> {
         let result: Vec<(i64,)> = sqlx::query_as(

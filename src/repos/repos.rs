@@ -10,6 +10,17 @@ pub struct Repositories {
     event: Box<dyn traits::EventRepo>,
 }
 
+impl Clone for Repositories {
+    fn clone(&self) -> Self {
+        Self {
+            user: self.user().clone(),
+            chunk: self.chunk().clone(),
+            fief: self.fief().clone(),
+            event: self.event().clone(),
+        }
+    }
+}
+
 impl Repositories {
     pub async fn from_sqlx(url: &str) -> Result<Self> {
         let options = SqliteConnectOptions::from_str(&url)?.create_if_missing(true);

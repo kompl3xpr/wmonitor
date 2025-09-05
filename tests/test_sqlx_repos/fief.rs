@@ -3,8 +3,8 @@ use chrono::TimeZone;
 use std::collections::HashSet;
 use wmonitor::{
     cfg,
-    domains::{Fief, FiefId, UserId},
     core::Position,
+    domains::{Fief, FiefId, UserId},
 };
 
 // [C]reate

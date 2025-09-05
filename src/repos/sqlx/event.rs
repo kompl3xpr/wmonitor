@@ -18,6 +18,10 @@ impl SqlxEventRepo {
 #[allow(unused)]
 #[async_trait]
 impl EventRepo for SqlxEventRepo {
+    fn clone(&self) -> Box<dyn EventRepo> {
+        Box::new(Self(Arc::clone(&self.0)))
+    }
+
     // [C]reate
     async fn save(&self, kind: EventKind) -> Result<Option<EventId>> {
         let (kind, value) = kind.into_raw()?;

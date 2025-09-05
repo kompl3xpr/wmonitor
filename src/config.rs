@@ -48,6 +48,10 @@ pub struct VisualizationConfig {
     pub normal_color: usize,
     pub abnormal_color: usize,
     pub unmasked_color: usize,
+    pub minimum_width: usize,
+    pub minimum_height: usize,
+    pub horizontal_margin: usize,
+    pub vertical_margin: usize,
 }
 
 static CONFIG_DOC: LazyLock<RwLock<DocumentMut>> = LazyLock::new(|| {

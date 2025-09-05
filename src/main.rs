@@ -24,7 +24,6 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-
 fn discord_token() -> String {
     let token = cfg().common.discord_token.clone();
     match token.is_empty() {

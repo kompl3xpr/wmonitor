@@ -10,7 +10,6 @@ pub use fief::SqlxFiefRepo;
 mod user;
 pub use user::SqlxUserRepo;
 
-
 use sqlx::sqlite::SqliteQueryResult;
 pub fn conv_create_result<Id>(
     result: Result<SqliteQueryResult, sqlx::Error>,

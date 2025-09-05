@@ -18,6 +18,10 @@ impl SqlxUserRepo {
 #[allow(unused)]
 #[async_trait]
 impl UserRepo for SqlxUserRepo {
+    fn clone(&self) -> Box<dyn UserRepo> {
+        Box::new(Self(Arc::clone(&self.0)))
+    }
+
     // [C]reate
     async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>> {
         let result = sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
