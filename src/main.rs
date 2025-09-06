@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     info!("loaded configurations:\n{:#?}", cfg());
 
     let wmonitor = app::WMonitor::builder()
-        .bot(bot::new_client(&discord_token()).await?)
+        .discord_token(discord_token())
         .repo(Repositories::from_sqlx(&datebase_url()).await?)
         .build();
 

@@ -6,14 +6,15 @@ use std::{
     time::Duration,
 };
 
-use crate::check::Checker;
+use crate::{bot, check::Checker, Repositories};
 use anyhow::Result;
 use tokio::time::sleep;
+use poise::serenity_prelude::*;
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {
-    repo: crate::repos::Repositories,
-    bot: serenity::Client,
+    repo: Repositories,
+    discord_token: String,
 }
 
 impl WMonitor {
@@ -22,7 +23,7 @@ impl WMonitor {
         let should_close_atomic = Arc::new(AtomicBool::new(false));
 
         let should_close = should_close_atomic.clone();
-        let checker = Checker::new(self.repo.clone(), tx.clone());
+        let checker = Checker::new(self.repo.clone(), tx);
         let check_task = tokio::spawn(async move {
             while !should_close.load(Ordering::SeqCst) {
                 checker.check_all().await.ok();
@@ -37,12 +38,14 @@ impl WMonitor {
         });
 
         let should_close = should_close_atomic.clone();
+        let mut bot = bot::new_client(self.repo, &self.discord_token).await?;
         let bot_task = tokio::spawn(async move {
-            let _should_close = should_close;
-            let _bot = self.bot;
+            bot.start().await.unwrap();
         });
 
         tokio::try_join!(check_task, notify_task, bot_task)?;
         Ok(())
     }
 }
+
+

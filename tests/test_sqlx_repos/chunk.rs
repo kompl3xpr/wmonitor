@@ -315,7 +315,7 @@ async fn set_position() {
 }
 
 #[tokio::test]
-async fn set_name() {
+async fn rename() {
     let repo = new_repo().await;
 
     let fief_id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
@@ -329,10 +329,10 @@ async fn set_name() {
         .unwrap();
     assert_eq!(repo.chunk().name(id).await.unwrap(), "左侧");
 
-    repo.chunk().set_name(id, "左上").await.unwrap();
+    repo.chunk().rename(id, "左上").await.unwrap();
     assert_eq!(repo.chunk().name(id).await.unwrap(), "左上");
 
-    repo.chunk().set_name(id, "右侧").await.unwrap_err();
+    repo.chunk().rename(id, "右侧").await.unwrap_err();
 }
 
 // - related

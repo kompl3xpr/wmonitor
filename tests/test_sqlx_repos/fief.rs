@@ -312,11 +312,11 @@ async fn skip_check_for() {
 }
 
 #[tokio::test]
-async fn set_name() {
+async fn rename() {
     let repo = new_repo().await;
     let id = repo.fief().create("协会横幅", None).await.unwrap().unwrap();
 
-    repo.fief().set_name(id, "协会横幅#0").await.unwrap();
+    repo.fief().rename(id, "协会横幅#0").await.unwrap();
     let name = repo.fief().name(id).await.unwrap();
     assert_eq!(name, "协会横幅#0".to_owned());
 }

@@ -242,7 +242,7 @@ impl FiefRepo for SqlxFiefRepo {
         Ok(())
     }
 
-    async fn set_name(&self, id: FiefId, name: &str) -> Result<()> {
+    async fn rename(&self, id: FiefId, name: &str) -> Result<()> {
         sqlx::query("UPDATE Fiefs SET name = $1 WHERE id = $2")
             .bind(name)
             .bind(id.0)

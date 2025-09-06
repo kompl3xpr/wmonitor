@@ -261,7 +261,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(())
     }
 
-    async fn set_name(&self, id: ChunkId, name: &str) -> Result<()> {
+    async fn rename(&self, id: ChunkId, name: &str) -> Result<()> {
         let result: Vec<(i64,)> = sqlx::query_as(
             "SELECT id FROM Chunks
             WHERE fief_id = (SELECT fief_id FROM Chunks WHERE id = $1) AND name = $2",

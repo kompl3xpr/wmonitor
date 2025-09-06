@@ -56,7 +56,7 @@ pub trait ChunkRepo: Sync + Send {
     async fn update_result_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
     async fn update_diff(&self, id: ChunkId, img: Option<ImagePng>, count: usize) -> Result<()>;
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()>;
-    async fn set_name(&self, id: ChunkId, name: &str) -> Result<()>;
+    async fn rename(&self, id: ChunkId, name: &str) -> Result<()>;
     // - related
     // *PASS*
 

@@ -66,7 +66,7 @@ pub trait FiefRepo: Sync + Send {
         dur: chrono::Duration,
         from: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<()>;
-    async fn set_name(&self, id: FiefId, name: &str) -> Result<()>;
+    async fn rename(&self, id: FiefId, name: &str) -> Result<()>;
     // - related
     // *PASS*
 

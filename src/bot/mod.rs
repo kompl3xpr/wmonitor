@@ -3,7 +3,7 @@
 mod commands;
 
 use poise::serenity_prelude as serenity;
-use std::{time::Duration, sync::Arc};
+use std::{sync::Arc, time::Duration};
 
 // Types used by all command functions
 type Error = anyhow::Error;

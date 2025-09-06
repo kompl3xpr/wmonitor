@@ -1,11 +1,19 @@
+use chrono::TimeZone;
+
 use super::{Context, Error};
+use crate::{
+    bot::commands::{has_perms, id_of},
+    core::lock_fief,
+    domains::Permissions,
+};
+
 /// 领地操作
 #[poise::command(
     prefix_command,
     slash_command,
     category = "领地",
     subcommands(
-        "add", "remove", "check", "setname", "settime", "enable", "disable", "info"
+        "add", "remove", "check", "rename", "settime", "enable", "disable", "info"
     )
 )]
 pub(super) async fn wmfief(_: Context<'_>) -> Result<(), Error> {
@@ -22,9 +30,24 @@ pub(super) async fn add(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let id = repo.fief().create(&name, None).await?;
+    // try to create user in db
+    let user_id = id_of(ctx.author());
+    if let Err(e) = repo.user().create(user_id, false).await {
+        ctx.say(format!("无法存储用户信息: {e}。")).await?;
+    }
 
-    ctx.say(format!("fief_id: {:?}", id)).await?;
+    let Some(id) = repo.fief().create(&name, None).await? else {
+        let msg = format!("领地 **{name}** 早已存在，请换个名字重新创建。");
+        ctx.say(msg).await?;
+        return Ok(());
+    };
+
+    repo.user()
+        .join(user_id, id, Some(Permissions::ALL))
+        .await?;
+
+    ctx.say(format!("成功创建领地 **{name}**(id: `{}`)。", id.0))
+        .await?;
     Ok(())
 }
 
@@ -36,14 +59,27 @@ pub(super) async fn remove(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let result = repo.fief().remove_by_name(&name).await?;
-    ctx.say(format!("{:?}", result)).await?;
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_DELETE).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+
+    lock_fief!(id);
+
+    repo.fief().remove_by_name(&name).await?;
+    ctx.say(format!("成功删除领地 **{name}**。")).await?;
     Ok(())
 }
 
 /// 设置领地名
 #[poise::command(prefix_command, slash_command, category = "领地")]
-pub(super) async fn setname(
+pub(super) async fn rename(
     ctx: Context<'_>,
     #[rename = "领地名"]
     #[description = "领地的原名字"]
@@ -55,9 +91,19 @@ pub(super) async fn setname(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let id = repo.fief().id(&name).await?;
-    let result = repo.fief().set_name(id, &new_name).await?;
-    ctx.say(format!("fief: {:?}", result)).await?;
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
+
+    repo.fief().rename(id, &new_name).await?;
+    ctx.say("已变更领地名字。").await?;
     Ok(())
 }
 
@@ -73,18 +119,49 @@ pub(super) async fn settime(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let id = repo.fief().id(&name).await?;
-    repo.fief().set_check_interval(id, chrono::Duration::minutes(interval as i64)).await?;
-    ctx.say(format!("changed")).await?;
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
+
+    repo.fief()
+        .set_check_interval(id, chrono::Duration::minutes(interval as i64))
+        .await?;
+    ctx.say(format!("已变更领地的检查间隔时间。")).await?;
     Ok(())
 }
 
 /// 手动检查领地
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn check(
-    _ctx: Context<'_>,
-    #[rename = "领地名"] _name: String,
+    ctx: Context<'_>,
+    #[rename = "领地名"] name: String,
 ) -> Result<(), Error> {
+    let repo = &ctx.data().repo;
+
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
+
+    let date = chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap();
+    match repo.fief().update_last_check(id, Some(date)).await {
+        Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
+        Err(_) => ctx.say("设置失败。").await?,
+    };
+
     Ok(())
 }
 
@@ -96,9 +173,19 @@ pub(super) async fn enable(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let id = repo.fief().id(&name).await?;
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
+
     repo.fief().keep_check(id).await?;
-    ctx.say(format!("enabled")).await?;
+    ctx.say(format!("已启用对领地的自动检查。")).await?;
     Ok(())
 }
 
@@ -110,21 +197,33 @@ pub(super) async fn disable(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let id = repo.fief().id(&name).await?;
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
+
     repo.fief().skip_check(id).await?;
-    ctx.say(format!("disabled")).await?;
+    ctx.say(format!("已禁用对领地的自动检查。")).await?;
     Ok(())
 }
 
 /// 获取领地信息
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn info(
-    ctx: Context<'_>,
-    #[rename = "领地名"] name: String,
+    ctx: Context<'_>, #[rename = "领地名"] name: String
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    let fief = repo.fief().fief_by_name(&name).await?;
-    ctx.say(format!("fief: {:?}", fief)).await?;
+    let Ok(fief) = repo.fief().fief_by_name(&name).await else {
+        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        return Ok(());
+    };
+    ctx.say(format!("领地信息: {:#?}", fief)).await?;
     Ok(())
 }
