@@ -21,10 +21,10 @@ pub(super) fn all() -> Vec<poise::Command<Data, Error>> {
         wmhelp(),
         wmfetch(),
         wmpermissions(),
-        chunk::wmchunk(),
-        admin::wmadmin(),
-        user::wmuser(),
         fief::wmfief(),
+        chunk::wmchunk(),
+        user::wmuser(),
+        admin::wmadmin(),
     ]
 }
 
