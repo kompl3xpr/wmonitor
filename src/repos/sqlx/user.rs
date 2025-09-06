@@ -132,7 +132,8 @@ impl UserRepo for SqlxUserRepo {
     // [U]pdate
     // - self or fields
     async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()> {
-        sqlx::query("UPDATE Users SET is_admin = TRUE WHERE id = $1 AND is_admin = FALSE")
+        sqlx::query("UPDATE Users SET is_admin = $1 WHERE id = $2")
+            .bind(is_admin)
             .bind(id.0)
             .execute(&*self.0)
             .await?;

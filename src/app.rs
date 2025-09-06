@@ -9,7 +9,6 @@ use std::{
 use crate::{bot, check::Checker, Repositories};
 use anyhow::Result;
 use tokio::time::sleep;
-use poise::serenity_prelude::*;
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {

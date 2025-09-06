@@ -1,4 +1,3 @@
-use chrono::TimeZone;
 use poise::serenity_prelude::MessageBuilder;
 
 use super::{Context, Error};
@@ -31,7 +30,6 @@ pub(super) async fn add(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
-    // try to create user in db
     let user_id = id_of(ctx.author());
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;

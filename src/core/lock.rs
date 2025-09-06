@@ -1,19 +1,18 @@
 use dashmap::DashMap;
-use std::sync::{LazyLock, Arc};
+use std::sync::{Arc, LazyLock};
 use tokio::sync::Mutex;
 
 use crate::domains::FiefId;
 
 static FIEF_LOCKS: LazyLock<DashMap<FiefId, Arc<Mutex<()>>>> = LazyLock::new(|| DashMap::new());
 
-pub struct FiefLock(
-    pub Arc<Mutex<()>>,
-    // FiefId,
-);
+pub struct FiefLock(pub Arc<Mutex<()>>, FiefId);
 
 impl Drop for FiefLock {
     fn drop(&mut self) {
-        // FIEF_LOCKS.remove(&self.1);
+        if let Ok(_) = self.0.try_lock() {
+            FIEF_LOCKS.remove(&self.1);
+        }
     }
 }
 
@@ -22,10 +21,7 @@ pub fn get_fief_lock(fief: FiefId) -> FiefLock {
         FIEF_LOCKS.insert(fief, Arc::new(Mutex::new(())));
     }
 
-    FiefLock(
-        FIEF_LOCKS.get(&fief).unwrap().clone(),
-        // fief, 
-    )
+    FiefLock(FIEF_LOCKS.get(&fief).unwrap().clone(), fief)
 }
 
 macro_rules! lock_fief {

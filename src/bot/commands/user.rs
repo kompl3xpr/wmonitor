@@ -39,11 +39,10 @@ pub(super) async fn join(
     }
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请输入用户。")).await?;
+        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
         return Ok(());
     };
 
-    // try to create user in db
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
@@ -93,11 +92,10 @@ pub(super) async fn leave(
     }
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请输入用户。")).await?;
+        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
         return Ok(());
     };
 
-    // try to create user in db
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
@@ -151,11 +149,10 @@ pub(super) async fn allow(
     }
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请输入用户。")).await?;
+        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
         return Ok(());
     };
 
-    // try to create user in db
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
@@ -221,11 +218,10 @@ pub(super) async fn deny(
     }
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请输入用户。")).await?;
+        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
         return Ok(());
     };
 
-    // try to create user in db
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
@@ -279,11 +275,10 @@ pub(super) async fn info(
     let repo = &ctx.data().repo;
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请输入用户。")).await?;
+        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
         return Ok(());
     };
 
-    // try to create user in db
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
