@@ -10,4 +10,7 @@ async fn fetch_current_image() {
 
     let (cached, _) = net::fetch_current_image([1687, 888]).await.unwrap();
     assert!(cached.0);
+
+    let (cached, _) = net::fetch_current_image([1687, 888]).await.unwrap();
+    assert!(cached.0);
 }

@@ -26,7 +26,7 @@ pub(super) mod domains {
 use domains::*;
 
 #[async_trait]
-pub trait FiefRepo {
+pub trait FiefRepo: Sync + Send {
     fn clone(&self) -> Box<dyn FiefRepo>;
 
     // [C]reate

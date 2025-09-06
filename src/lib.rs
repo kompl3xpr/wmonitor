@@ -1,5 +1,4 @@
-pub mod config;
-pub use config::{cfg, save_cfg_with};
+
 
 pub mod entities;
 
@@ -12,8 +11,8 @@ pub mod domains {
 
 pub mod app;
 pub mod bot;
-pub mod checker;
+pub mod check;
 pub mod commands;
 pub mod core;
-
-pub mod net;
+pub use core::config::{cfg, init_cfg, save_cfg_with};
+pub use core::net;

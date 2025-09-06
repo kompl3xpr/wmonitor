@@ -1,4 +1,4 @@
-use crate::{domains::FiefId, repos::traits};
+use crate::domains::FiefId;
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -52,7 +52,7 @@ pub(super) mod domains {
 use domains::*;
 
 #[async_trait]
-pub trait UserRepo {
+pub trait UserRepo: Sync + Send {
     fn clone(&self) -> Box<dyn UserRepo>;
 
     // [C]reate

@@ -9,7 +9,6 @@ fn kinds() -> Vec<EventKind> {
             diff_count: 99,
         }),
         EventKind::CheckError(CheckErrorEvent {
-            fief: FiefId(1919),
             description: "network error".to_owned(),
         }),
         EventKind::AppStop,

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS Chunks (
     img_ref BLOB,
     img_mask BLOB,
     img_diff BLOB,
+    img_result BLOB,
     diff_count INTEGER NOT NULL,
     FOREIGN KEY (fief_id) REFERENCES Fiefs(id) ON DELETE CASCADE
 );

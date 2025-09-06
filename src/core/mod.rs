@@ -1,3 +1,9 @@
+pub mod config;
+pub mod net;
+
+pub mod lock;
+pub(crate) use lock::lock_fief;
+
 use anyhow::Result;
 use image::{ImageFormat, ImageReader};
 use serde::{Deserialize, Serialize};

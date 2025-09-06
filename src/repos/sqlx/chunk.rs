@@ -167,6 +167,17 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(result.0.map(ImagePng::new))
     }
 
+    async fn result_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
+        let result: (Option<Vec<u8>>,) =
+            sqlx::query_as("SELECT img_result FROM Chunks WHERE id = $1")
+                .bind(id.0)
+                .fetch_one(&*self.0)
+                .await?;
+
+        Ok(result.0.map(ImagePng::new))
+    }
+
+
     async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
         let result: (Option<Vec<u8>>,) =
             sqlx::query_as("SELECT img_diff FROM Chunks WHERE id = $1")
@@ -202,6 +213,16 @@ impl ChunkRepo for SqlxChunkRepo {
 
     async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
         sqlx::query("UPDATE Chunks SET img_mask = $1 WHERE id = $2")
+            .bind(img.map(ImagePng::into_inner))
+            .bind(id.0)
+            .execute(&*self.0)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn update_result_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
+        sqlx::query("UPDATE Chunks SET img_result = $1 WHERE id = $2")
             .bind(img.map(ImagePng::into_inner))
             .bind(id.0)
             .execute(&*self.0)

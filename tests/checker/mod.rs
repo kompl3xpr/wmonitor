@@ -1,5 +1,5 @@
 use image::{DynamicImage, ImageFormat, ImageReader};
-use wmonitor::checker::algorithms::{find_diffs, gen_visual_result};
+use wmonitor::check::algorithms::{find_diffs, gen_visual_result};
 
 const REF_IMG_PATH: &'static str = "tests_data/ref.png";
 const MASK_IMG_PATH: &'static str = "tests_data/mask.png";

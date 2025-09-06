@@ -1,9 +1,11 @@
-use tracing::{error, info, warn};
-use wmonitor::{Repositories, app, bot, cfg, config::init_cfg};
+use tracing::{error, info, level_filters::LevelFilter, warn};
+use wmonitor::{Repositories, app, bot, cfg, init_cfg};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::fmt()
+        .with_max_level(LevelFilter::DEBUG)
+        .init();
     info!("starting logging...");
 
     info!("attempting to get environment variables from `.env`(if exists)...");

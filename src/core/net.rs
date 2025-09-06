@@ -5,6 +5,7 @@ use crate::{
 use anyhow::Result;
 use moka::future::{Cache, CacheBuilder};
 use std::{sync::LazyLock, time::Duration};
+use tokio::time::sleep;
 
 static CACHE: LazyLock<Cache<Position, ImagePng>> = LazyLock::new(|| {
     CacheBuilder::new(cfg().network.image_cache_capacity as u64)
@@ -25,6 +26,9 @@ pub async fn fetch_current_image(pos: impl Into<Position>) -> Result<(IsCached, 
         return Ok((IsCached(true), img));
     }
 
+    let dur = Duration::from_secs(cfg().network.sleep_between_requests_sec as u64);
+    sleep(dur).await;
+    
     let Position { x, y } = pos;
     let resp = reqwest::get(format!(
         "https://backend.wplace.live/files/s0/tiles/{x}/{y}.png"

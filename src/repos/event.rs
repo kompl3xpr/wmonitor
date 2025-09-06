@@ -90,14 +90,13 @@ pub(super) mod domains {
 
     #[derive(PartialEq, Eq, Debug, Clone, Hash, Serialize, Deserialize)]
     pub struct CheckErrorEvent {
-        pub fief: FiefId,
         pub description: String,
     }
 }
 use domains::*;
 
 #[async_trait]
-pub trait EventRepo {
+pub trait EventRepo: Sync + Send {
     fn clone(&self) -> Box<dyn EventRepo>;
 
     // [C]reate

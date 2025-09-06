@@ -27,7 +27,7 @@ pub(super) mod domains {
 use domains::*;
 
 #[async_trait]
-pub trait ChunkRepo {
+pub trait ChunkRepo: Sync + Send {
     fn clone(&self) -> Box<dyn ChunkRepo>;
 
     // [C]reate
@@ -44,6 +44,7 @@ pub trait ChunkRepo {
     async fn ref_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn mask_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
+    async fn result_img(&self, id: ChunkId) -> Result<Option<ImagePng>>;
     async fn diff_count(&self, id: ChunkId) -> Result<usize>;
     // - related
     // *PASS*
@@ -52,6 +53,7 @@ pub trait ChunkRepo {
     // - self or fields
     async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
     async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
+    async fn update_result_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
     async fn update_diff(&self, id: ChunkId, img: Option<ImagePng>, count: usize) -> Result<()>;
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()>;
     async fn set_name(&self, id: ChunkId, name: &str) -> Result<()>;
