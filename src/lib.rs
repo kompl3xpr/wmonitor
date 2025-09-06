@@ -12,7 +12,6 @@ pub mod domains {
 pub mod app;
 pub mod bot;
 pub mod check;
-pub mod commands;
 pub mod core;
 pub use core::config::{cfg, init_cfg, save_cfg_with};
 pub use core::net;
