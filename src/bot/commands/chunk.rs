@@ -64,7 +64,7 @@ pub(super) async fn rename(
     Ok(())
 }
 
-/// 上传该区域的参考图
+/// 上传该区块的参考图
 #[poise::command(prefix_command, slash_command, category = "区块")]
 pub(super) async fn setref(
     _ctx: Context<'_>,
@@ -77,7 +77,7 @@ pub(super) async fn setref(
     Ok(())
 }
 
-/// 设置该区域的参考图为当前状态
+/// 设置该区块的参考图为当前状态
 #[poise::command(prefix_command, slash_command, category = "区块")]
 pub(super) async fn refnow(
     _ctx: Context<'_>,
@@ -90,7 +90,7 @@ pub(super) async fn refnow(
     Ok(())
 }
 
-/// 上传该区域的遮罩图（用于划定哪些像素需要检查）
+/// 上传该区块的遮罩图（用于划定哪些像素需要检查）
 #[poise::command(prefix_command, slash_command, category = "区块")]
 pub(super) async fn setmask(
     _ctx: Context<'_>,
@@ -103,7 +103,7 @@ pub(super) async fn setmask(
     Ok(())
 }
 
-/// 修改区域的坐标
+/// 修改区块的坐标
 #[poise::command(prefix_command, slash_command, category = "区块")]
 pub(super) async fn setpos(
     _ctx: Context<'_>,
@@ -116,7 +116,7 @@ pub(super) async fn setpos(
     Ok(())
 }
 
-/// 获取区域的信息
+/// 获取区块的信息
 #[poise::command(prefix_command, slash_command, category = "区块")]
 pub(super) async fn info(
     _ctx: Context<'_>,

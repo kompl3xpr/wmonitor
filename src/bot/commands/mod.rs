@@ -1,4 +1,7 @@
-use poise::{CreateReply, serenity_prelude::CreateAttachment};
+use poise::{
+    CreateReply,
+    serenity_prelude::{CreateAttachment, MessageBuilder},
+};
 
 use crate::{
     Repositories,
@@ -56,6 +59,7 @@ pub async fn wmfetch(
     #[description = "区块在 Wplace 上的 Y 坐标"]
     y: usize,
 ) -> Result<(), Error> {
+    ctx.say("正在从 wplace.live 获取图片，请稍等...").await?;
     let Ok((_, img)) = net::fetch_current_image([x, y]).await else {
         ctx.say("网络异常，请稍后重试。").await?;
         return Ok(());
@@ -71,6 +75,26 @@ pub async fn wmfetch(
 /// 列出用户权限种类
 #[poise::command(prefix_command, track_edits, slash_command, category = "基本指令")]
 pub async fn wmpermissions(ctx: Context<'_>) -> Result<(), Error> {
+    let mut msg = MessageBuilder::new();
+    msg.push("# 权限说明\n")
+        .push("## 领地相关\n")
+        .push("- `FIEF_EDIT`: 编辑领地信息\n")
+        .push("- `FIEF_DELETE`: 删除领地\n")
+        .push("- `FIEF_ALL`: 领地的全部权限，等同于 `FIEF_EDIT` + `FIEF_DELETE`\n")
+        .push("## 区块相关\n")
+        .push("- `CHUNK_ADD`: 在领地内添加区块\n")
+        .push("- `CHUNK_EDIT`: 编辑领地内区块信息\n")
+        .push("- `CHUNK_DELETE`: 删除领地内的区块\n")
+        .push("- `CHUNK_ALL`: 区块的全部权限，详细说明同上\n")
+        .push("## 成员相关\n")
+        .push("- `MEMBER_INVITE`: 邀请成员至领地\n")
+        .push("- `MEMBER_EDIT_PERMS`: 编辑用户在领地内的权限\n")
+        .push("- `MEMBER_KICK`: 将成员移出领地\n")
+        .push("- `MEMBER_ALL`: 成员的全部权限，详细说明同上\n")
+        .push("## 其他\n")
+        .push("- `NONE`: 无任何权限\n")
+        .push("- `ALL`: 拥有上述所有权限\n");
+    ctx.say(msg.build()).await?;
     Ok(())
 }
 

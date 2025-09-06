@@ -1,4 +1,5 @@
 use chrono::TimeZone;
+use poise::serenity_prelude::MessageBuilder;
 
 use super::{Context, Error};
 use crate::{
@@ -46,7 +47,7 @@ pub(super) async fn add(
         .join(user_id, id, Some(Permissions::ALL))
         .await?;
 
-    ctx.say(format!("成功创建领地 **{name}**(id: `{}`)。", id.0))
+    ctx.say(format!("成功创建领地 **{name}**（id: `{}`）。", id.0))
         .await?;
     Ok(())
 }
@@ -60,7 +61,7 @@ pub(super) async fn remove(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
 
@@ -92,7 +93,7 @@ pub(super) async fn rename(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
     let user_id = id_of(ctx.author());
@@ -120,7 +121,7 @@ pub(super) async fn settime(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
     let user_id = id_of(ctx.author());
@@ -141,26 +142,27 @@ pub(super) async fn settime(
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn check(
     ctx: Context<'_>,
-    #[rename = "领地名"] name: String,
+    #[rename = "领地名"] _name: String,
 ) -> Result<(), Error> {
-    let repo = &ctx.data().repo;
+    // let repo = &ctx.data().repo;
 
-    let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
-        return Ok(());
-    };
-    let user_id = id_of(ctx.author());
-    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("操作失败，权限不足。").await?;
-        return Ok(());
-    }
-    lock_fief!(id);
+    // let Ok(id) = repo.fief().id(&name).await else {
+    //     ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+    //     return Ok(());
+    // };
+    // let user_id = id_of(ctx.author());
+    // if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+    //     ctx.say("操作失败，权限不足。").await?;
+    //     return Ok(());
+    // }
+    // lock_fief!(id);
 
-    let date = chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap();
-    match repo.fief().update_last_check(id, Some(date)).await {
-        Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
-        Err(_) => ctx.say("设置失败。").await?,
-    };
+    // let date = chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap();
+    // match repo.fief().update_last_check(id, Some(date)).await {
+    //     Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
+    //     Err(_) => ctx.say("设置失败。").await?,
+    // };
+    ctx.say("目前暂不支持手动检查功能。").await?;
 
     Ok(())
 }
@@ -174,7 +176,7 @@ pub(super) async fn enable(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
     let user_id = id_of(ctx.author());
@@ -194,11 +196,14 @@ pub(super) async fn enable(
 pub(super) async fn disable(
     ctx: Context<'_>,
     #[rename = "领地名"] name: String,
+    #[rename = "禁用时长"]
+    #[description = "多少小时后重新启用"]
+    dur_hours: Option<usize>,
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
     let user_id = id_of(ctx.author());
@@ -208,8 +213,21 @@ pub(super) async fn disable(
     }
     lock_fief!(id);
 
-    repo.fief().skip_check(id).await?;
-    ctx.say(format!("已禁用对领地的自动检查。")).await?;
+    let dur = dur_hours.map(|d| chrono::Duration::hours(d as i64));
+    match dur {
+        Some(dur) => {
+            repo.fief().skip_check_for(id, dur, None).await?;
+            ctx.say(format!(
+                "已禁用对领地的自动检查（持续时间: {} 小时）。",
+                dur_hours.unwrap()
+            ))
+            .await?;
+        }
+        _ => {
+            repo.fief().skip_check(id).await?;
+            ctx.say("已禁用对领地的自动检查。").await?;
+        }
+    }
     Ok(())
 }
 
@@ -221,9 +239,44 @@ pub(super) async fn info(
     let repo = &ctx.data().repo;
 
     let Ok(fief) = repo.fief().fief_by_name(&name).await else {
-        ctx.say(format!("错误，领地 **{name}** 不存在")).await?;
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
         return Ok(());
     };
-    ctx.say(format!("领地信息: {:#?}", fief)).await?;
+
+    let mut builder = MessageBuilder::new();
+    builder
+        .push_bold("# 领地信息\n")
+        .push("名字：**")
+        .push(fief.name)
+        .push("**\n检查间隔：")
+        .push(fief.check_interval.num_minutes().to_string())
+        .push(" 分钟一次\n");
+
+    let now = chrono::Utc::now();
+    let last_check = now - fief.last_check;
+    let last_check = if last_check > chrono::Duration::weeks(100) {
+        "无".to_string()
+    } else {
+        format!("{} 分钟之前", last_check.num_minutes())
+    };
+
+    let skip_check_until = if fief.skip_check_until < now {
+        "启用中".to_string()
+    } else {
+        let skip_check_until = fief.skip_check_until - now;
+        if skip_check_until > chrono::Duration::weeks(100) {
+            "禁用中".to_string()
+        } else {
+            format!("{} 分钟之后启用", skip_check_until.num_minutes())
+        }
+    };
+
+    builder
+        .push("上次检查：")
+        .push(last_check)
+        .push("\n自动检查：")
+        .push(skip_check_until);
+
+    ctx.say(builder.build()).await?;
     Ok(())
 }

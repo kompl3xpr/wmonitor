@@ -4,7 +4,7 @@ use wmonitor::{Repositories, app, bot, cfg, init_cfg};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
-        .with_max_level(LevelFilter::DEBUG)
+        .with_max_level(LevelFilter::INFO)
         .init();
     info!("starting logging...");
 
