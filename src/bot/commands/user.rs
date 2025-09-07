@@ -4,7 +4,7 @@ use crate::{
 };
 use poise::serenity_prelude::{Mention, MessageBuilder};
 
-use super::{Context, Error};
+use super::{Context, Error, say};
 
 /// 用户操作
 #[poise::command(
@@ -25,25 +25,24 @@ async fn _try(
 ) -> Result<Option<(UserId, FiefId)>, Error> {
     let repo = &ctx.data().repo;
     let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
+        say!(ctx, "错误：领地 **{fief_name}** 不存在。");
         return Ok(None);
     };
 
     let author_id = id_of(ctx.author());
     if !has_perms(repo, author_id, fief_id, perms).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(None);
     }
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
+        say!(ctx, "参数错误：请@用户作为输入。");
         return Ok(None);
     };
 
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
+        say!(ctx, "无法存储用户信息: {e}。");
     }
 
     Ok(Some((user_id, fief_id)))
@@ -63,22 +62,12 @@ pub(super) async fn join(
 
     let repo = &ctx.data().repo;
     match repo.user().join(user_id, fief_id, None).await {
-        Ok(true) => {
-            ctx.say(format!("已添加用户 {user} 至领地 **{fief_name}**。"))
-                .await?
-        }
-        Ok(false) => {
-            ctx.say(format!(
-                "错误：用户 {user} 已经是领地 **{fief_name}** 的成员。"
-            ))
-            .await?
-        }
-        Err(e) => {
-            ctx.say(format!(
-                "错误：无法添加用户 {user} 至领地 **{fief_name}**: {e}。"
-            ))
-            .await?
-        }
+        Ok(true) => say!(ctx, "已添加用户 {user} 至领地 **{fief_name}**。"),
+        Ok(false) => say!(ctx, "错误：用户 {user} 已经是领地 **{fief_name}** 的成员。"),
+        Err(e) => say!(
+            ctx,
+            "错误：无法添加用户 {user} 至领地 **{fief_name}**: {e}。"
+        ),
     };
 
     Ok(())
@@ -98,22 +87,15 @@ pub(super) async fn leave(
     let repo = &ctx.data().repo;
 
     match repo.user().leave(user_id, fief_id).await {
-        Ok(true) => {
-            ctx.say(format!("已将用户 {user} 从领地 **{fief_name}** 中移出。"))
-                .await?
-        }
-        Ok(false) => {
-            ctx.say(format!(
-                "错误：用户 {user} 不在领地 **{fief_name}** 或已经被移出。"
-            ))
-            .await?
-        }
-        Err(e) => {
-            ctx.say(format!(
-                "错误：无法将用户 {user} 从领地 **{fief_name}** 中移出: {e}。"
-            ))
-            .await?
-        }
+        Ok(true) => say!(ctx, "已将用户 {user} 从领地 **{fief_name}** 中移出。"),
+        Ok(false) => say!(
+            ctx,
+            "错误：用户 {user} 不在领地 **{fief_name}** 或已经被移出。"
+        ),
+        Err(e) => say!(
+            ctx,
+            "错误：无法将用户 {user} 从领地 **{fief_name}** 中移出: {e}。"
+        ),
     };
 
     Ok(())
@@ -138,20 +120,17 @@ pub(super) async fn allow(
     let repo = &ctx.data().repo;
 
     let Ok(perms) = repo.user().permissions_in(user_id, fief_id).await else {
-        ctx.say(format!("错误：用户 {user} 并不属于领地 **{fief_name}**。"))
-            .await?;
+        say!(ctx, "错误：用户 {user} 并不属于领地 **{fief_name}**。");
         return Ok(());
     };
 
     let Some(p) = Permissions::from_name(&permission) else {
-        ctx.say(format!("错误：`{permission}` 不是有效的权限名称。"))
-            .await?;
+        say!(ctx, "错误：`{permission}` 不是有效的权限名称。");
         return Ok(());
     };
 
     if perms.contains(p) {
-        ctx.say(format!("错误：用户 {user} 已有权限 `{permission}`。"))
-            .await?;
+        say!(ctx, "错误：用户 {user} 已有权限 `{permission}`。");
         return Ok(());
     }
 
@@ -160,14 +139,15 @@ pub(super) async fn allow(
         .set_permissions_in(user_id, fief_id, p | perms)
         .await
     {
-        Ok(_) => ctx.say(format!(
+        Ok(_) => say!(
+            ctx,
             "已经授予用户 {user} 在领地 **{fief_name}** 的 `{permission}` 权限。"
-        )),
-        Err(e) => ctx.say(format!(
+        ),
+        Err(e) => say!(
+            ctx,
             "错误：无法在领地 **{fief_name}** 为用户 {user} 添加权限: {e}。"
-        )),
-    }
-    .await?;
+        ),
+    };
 
     Ok(())
 }
@@ -190,20 +170,17 @@ pub(super) async fn deny(
     let repo = &ctx.data().repo;
 
     let Ok(perms) = repo.user().permissions_in(user_id, fief_id).await else {
-        ctx.say(format!("错误：用户 {user} 并不属于领地 **{fief_name}**。"))
-            .await?;
+        say!(ctx, "错误：用户 {user} 并不属于领地 **{fief_name}**。");
         return Ok(());
     };
 
     let Some(p) = Permissions::from_name(&permission) else {
-        ctx.say(format!("错误：`{permission}` 不是有效的权限名称。"))
-            .await?;
+        say!(ctx, "错误：`{permission}` 不是有效的权限名称。");
         return Ok(());
     };
 
     if perms.intersection(p) == Permissions::NONE {
-        ctx.say(format!("错误：用户 {user} 未有权限 `{permission}`。"))
-            .await?;
+        say!(ctx, "错误：用户 {user} 未有权限 `{permission}`。");
         return Ok(());
     }
 
@@ -212,14 +189,15 @@ pub(super) async fn deny(
         .set_permissions_in(user_id, fief_id, perms - p)
         .await
     {
-        Ok(_) => ctx.say(format!(
+        Ok(_) => say!(
+            ctx,
             "已经收回用户 {user} 在领地 **{fief_name}** 的 `{permission}` 权限。"
-        )),
-        Err(e) => ctx.say(format!(
+        ),
+        Err(e) => say!(
+            ctx,
             "错误：无法在领地 **{fief_name}** 为用户 {user} 收回权限: {e}。"
-        )),
-    }
-    .await?;
+        ),
+    };
 
     Ok(())
 }
@@ -237,19 +215,18 @@ pub(super) async fn info(
     let repo = &ctx.data().repo;
 
     let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
+        say!(ctx, "参数错误：请@用户作为输入。");
         return Ok(());
     };
 
     let user_id = UserId(user_id.get() as i64);
     if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
+        say!(ctx, "无法存储用户信息: {e}。");
     }
 
     let fief_ids = if let Some(fief_name) = fief_name {
         let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-            ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-                .await?;
+            say!(ctx, "错误：领地 **{fief_name}** 不存在。");
             return Ok(());
         };
         vec![fief_id]
@@ -280,6 +257,6 @@ pub(super) async fn info(
             .push(format!("  拥有权限：{}\n", perms_str));
     }
 
-    ctx.say(builder.build()).await?;
+    say!(ctx, builder.build());
     Ok(())
 }

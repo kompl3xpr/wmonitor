@@ -1,6 +1,9 @@
-use poise::serenity_prelude::{Mention, MessageBuilder};
+use poise::{
+    CreateReply,
+    serenity_prelude::{Mention, MessageBuilder},
+};
 
-use super::{Context, Error};
+use super::{Context, Error, say};
 use crate::{
     bot::commands::{has_perms, id_of},
     core::lock_fief,
@@ -32,12 +35,12 @@ pub(super) async fn add(
 
     let user_id = id_of(ctx.author());
     if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("错误：无法存储用户信息: {e}。")).await?;
+        say!(ctx, "错误：无法存储用户信息: {e}。");
     }
 
     let Some(id) = repo.fief().create(&name, None).await? else {
         let msg = format!("领地 **{name}** 早已存在，请换个名字重新创建。");
-        ctx.say(msg).await?;
+        say!(ctx, msg);
         return Ok(());
     };
 
@@ -45,8 +48,7 @@ pub(super) async fn add(
         .join(user_id, id, Some(Permissions::ALL))
         .await?;
 
-    ctx.say(format!("成功创建领地 **{name}**（id: `{}`）。", id.0))
-        .await?;
+    say!(ctx, "成功创建领地 **{name}**（id: `{}`）。", id.0);
     Ok(())
 }
 
@@ -59,20 +61,20 @@ pub(super) async fn remove(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
 
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_DELETE).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
 
     lock_fief!(id);
 
     repo.fief().remove_by_name(&name).await?;
-    ctx.say(format!("成功删除领地 **{name}**。")).await?;
+    say!(ctx, "成功删除领地 **{name}**。");
     Ok(())
 }
 
@@ -91,19 +93,18 @@ pub(super) async fn rename(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
     lock_fief!(id);
 
     repo.fief().rename(id, &new_name).await?;
-    ctx.say(format!("已将领地 **{name}** 的名字变更为 **{new_name}**。"))
-        .await?;
+    say!(ctx, "已将领地 **{name}** 的名字变更为 **{new_name}**。");
     Ok(())
 }
 
@@ -120,12 +121,12 @@ pub(super) async fn settime(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
     lock_fief!(id);
@@ -133,10 +134,10 @@ pub(super) async fn settime(
     repo.fief()
         .set_check_interval(id, chrono::Duration::minutes(interval as i64))
         .await?;
-    ctx.say(format!(
+    say!(
+        ctx,
         "已变更 **{name}** 领地的检查间隔时间为 {interval} 分钟。"
-    ))
-    .await?;
+    );
     Ok(())
 }
 
@@ -149,24 +150,21 @@ pub(super) async fn check(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
     lock_fief!(id);
 
     match repo.fief().mark_should_check_now(id).await {
         Ok(_) => {
-            ctx.say(format!(
-                "设置成功，领地 **{name}** 将在一分钟内被执行检查。"
-            ))
-            .await?
+            say!(ctx, "设置成功，领地 **{name}** 将在一分钟内被执行检查。")
         }
-        Err(_) => ctx.say("设置失败。").await?,
+        Err(_) => say!(ctx, "设置失败。"),
     };
 
     Ok(())
@@ -181,19 +179,18 @@ pub(super) async fn enable(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
     lock_fief!(id);
 
     repo.fief().keep_check(id).await?;
-    ctx.say(format!("已启用对领地 **{name}** 的定期自动检查。"))
-        .await?;
+    say!(ctx, "已启用对领地 **{name}** 的定期自动检查。");
     Ok(())
 }
 
@@ -209,12 +206,12 @@ pub(super) async fn disable(
     let repo = &ctx.data().repo;
 
     let Ok(id) = repo.fief().id(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
     lock_fief!(id);
@@ -223,16 +220,15 @@ pub(super) async fn disable(
     match dur {
         Some(dur) => {
             repo.fief().skip_check_for(id, dur, None).await?;
-            ctx.say(format!(
+            say!(
+                ctx,
                 "已禁用对领地 **{name}** 的定期自动检查（持续时间: {} 小时）。",
                 dur_hours.unwrap()
-            ))
-            .await?;
+            );
         }
         _ => {
             repo.fief().skip_check(id).await?;
-            ctx.say(format!("已禁用对领地 **{name}** 的定期自动检查。"))
-                .await?;
+            say!(ctx, "已禁用对领地 **{name}** 的定期自动检查。");
         }
     }
     Ok(())
@@ -246,7 +242,7 @@ pub(super) async fn info(
     let repo = &ctx.data().repo;
 
     let Ok(fief) = repo.fief().fief_by_name(&name).await else {
-        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        say!(ctx, "错误：领地 **{name}** 不存在。");
         return Ok(());
     };
 
@@ -325,6 +321,11 @@ pub(super) async fn info(
         }
     }
 
-    ctx.say(builder.build()).await?;
+    ctx.send(
+        CreateReply::default()
+            .content(builder.build())
+            .ephemeral(true),
+    )
+    .await?;
     Ok(())
 }

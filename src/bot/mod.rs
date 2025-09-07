@@ -24,6 +24,15 @@ pub struct Data {
     pub should_close: Arc<AtomicBool>,
 }
 
+static CHANNEL_ID: std::sync::LazyLock<ChannelId> = std::sync::LazyLock::new(|| {
+    let result = get_or_env(
+        &cfg().notification.discord_channel,
+        "",
+        "NOTIFICATION_CHANNEL_ID",
+    );
+    ChannelId::new(result.parse::<u64>().unwrap())
+});
+
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
         poise::FrameworkError::Setup { error, .. } => {
@@ -53,6 +62,15 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
             ))),
             ..Default::default()
         },
+        command_check: Some(|ctx| {
+            Box::pin(async move {
+                if ctx.channel_id() != *CHANNEL_ID {
+                    return Ok(false);
+                }
+
+                Ok(true)
+            })
+        }),
         // The global error handler for all error cases that may occur
         on_error: |error| Box::pin(on_error(error)),
         // Enforce command checks even for owners (enforced by default)
@@ -67,15 +85,11 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
                 info!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
-                let channel = get_or_env(
-                    &cfg().notification.discord_channel,
-                    "",
-                    "NOTIFICATION_CHANNEL_ID",
-                );
-                let channel = ChannelId::new(channel.parse::<u64>().unwrap());
                 let http = Http::new(ctx.http().token());
                 let rx = data.event_rx.lock().await.take().unwrap();
-                start_with(http, data.repo.clone(), rx, channel).await.ok();
+                start_with(http, data.repo.clone(), rx, *CHANNEL_ID)
+                    .await
+                    .ok();
 
                 Ok(data)
             })

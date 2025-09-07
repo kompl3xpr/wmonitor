@@ -11,7 +11,7 @@ use crate::{
     net,
 };
 
-use super::{Context, Error, has_perms, id_of};
+use super::{Context, Error, has_perms, id_of, say};
 
 /// 区块操作
 #[poise::command(
@@ -34,22 +34,21 @@ async fn _try(
 ) -> Result<Option<(FiefId, Chunk)>, Error> {
     let repo = &ctx.data().repo;
     let Ok(fief_id) = repo.fief().id(fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
+        say!(ctx, "错误：领地 **{fief_name}** 不存在。");
         return Ok(None);
     };
 
     let author_id = id_of(ctx.author());
     if !has_perms(repo, author_id, fief_id, perms).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(None);
     }
 
     let Ok(chunk) = repo.chunk().chunk_by_name(fief_id, name).await else {
-        ctx.say(format!(
+        say!(
+            ctx,
             "错误：无法从领地 **{fief_name}** 中找到区块 *{name}*。"
-        ))
-        .await?;
+        );
         return Ok(None);
     };
 
@@ -78,14 +77,13 @@ pub(super) async fn add(
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
     let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
+        say!(ctx, "错误：领地 **{fief_name}** 不存在。");
         return Ok(());
     };
 
     let author_id = id_of(ctx.author());
     if !has_perms(repo, author_id, fief_id, Permissions::CHUNK_ADD).await {
-        ctx.say("错误：操作失败，权限不足。").await?;
+        say!(ctx, "错误：操作失败，权限不足。");
         return Ok(());
     }
 
@@ -98,7 +96,7 @@ pub(super) async fn add(
         Err(e) => format!("错误：无法在领地 **{fief_name}** 内创建区块 *{name}*: {e}"),
     };
 
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -120,7 +118,7 @@ pub(super) async fn remove(
         Ok(false) => format!("错误：无法从领地 **{fief_name}** 中找到区块 *{name}*。"),
         Err(e) => format!("错误：无法将区块 *{name}* 从领地 **{fief_name}** 中删除: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -147,7 +145,7 @@ pub(super) async fn rename(
         Ok(_) => format!("成功将领地 **{fief_name}** 内的区块 *{name}* 更名为 *{new_name}*。"),
         Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -165,7 +163,7 @@ pub(super) async fn setref(
         return Ok(());
     };
     let repo = &ctx.data().repo;
-    ctx.say("请发送图片以上传参考图。").await?.message().await?;
+    say!(ctx, "请发送图片以上传参考图。").message().await?;
 
     let mut img: Option<Vec<u8>> = None;
     for _ in 0..3 {
@@ -175,12 +173,13 @@ pub(super) async fn setref(
             .timeout(Duration::from_secs(60))
             .await
         else {
-            ctx.say("等待已超时，请重新输入指令。").await?;
+            say!(ctx, "等待已超时，请重新输入指令。");
             return Ok(());
         };
+        msg.delete(ctx).await?;
 
         if msg.attachments.is_empty() {
-            ctx.say("找不到附件，请再次上传。").await?;
+            say!(ctx, "找不到附件，请再次上传。");
             continue;
         }
         let file = msg.attachments.remove(0);
@@ -193,13 +192,13 @@ pub(super) async fn setref(
             img = Some(file.download().await?);
             break;
         } else {
-            ctx.say("附件类型只能是 PNG 图片，请再次上传。").await?;
+            say!(ctx, "附件类型只能是 PNG 图片，请再次上传。");
             continue;
         }
     }
 
     let Some(img) = img.map(ImagePng::new) else {
-        ctx.say("错误：失败超过三次，请重新输入指令。").await?;
+        say!(ctx, "错误：失败超过三次，请重新输入指令。");
         return Ok(());
     };
 
@@ -207,7 +206,7 @@ pub(super) async fn setref(
         Ok(_) => format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的参考图。"),
         Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -225,7 +224,7 @@ pub(super) async fn setmask(
         return Ok(());
     };
     let repo = &ctx.data().repo;
-    ctx.say("请发送图片以上传遮罩图。").await?.message().await?;
+    say!(ctx, "请发送图片以上传遮罩图。").message().await?;
 
     let mut img: Option<Vec<u8>> = None;
     for _ in 0..3 {
@@ -235,12 +234,13 @@ pub(super) async fn setmask(
             .timeout(Duration::from_secs(60))
             .await
         else {
-            ctx.say("等待已超时，请重新输入指令。").await?;
+            say!(ctx, "等待已超时，请重新输入指令。");
             return Ok(());
         };
+        msg.delete(ctx).await?;
 
         if msg.attachments.is_empty() {
-            ctx.say("找不到附件，请再次上传。").await?;
+            say!(ctx, "找不到附件，请再次上传。");
             continue;
         }
         let file = msg.attachments.remove(0);
@@ -253,13 +253,12 @@ pub(super) async fn setmask(
             img = Some(file.download().await?);
             break;
         } else {
-            ctx.say("附件类型只能是 PNG 图片，请再次上传。").await?;
-            continue;
+            say!(ctx, "附件类型只能是 PNG 图片，请再次上传。");
         }
     }
 
     let Some(img) = img.map(ImagePng::new) else {
-        ctx.say("错误：失败超过三次，请重新输入指令。").await?;
+        say!(ctx, "错误：失败超过三次，请重新输入指令。");
         return Ok(());
     };
 
@@ -267,7 +266,7 @@ pub(super) async fn setmask(
         Ok(_) => format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的遮罩图。"),
         Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -286,10 +285,10 @@ pub(super) async fn refnow(
     };
     let repo = &ctx.data().repo;
 
-    ctx.say("正在从 wplace.live 获取图片，请稍等...").await?;
+    say!(ctx, "正在从 wplace.live 获取图片，请稍等...");
     let Position { x, y } = chunk.position;
     let Ok((_, img)) = net::fetch_current_image([x, y]).await else {
-        ctx.say("网络异常，请稍后重试。").await?;
+        say!(ctx, "网络异常，请稍后重试。");
         return Ok(());
     };
 
@@ -297,7 +296,7 @@ pub(super) async fn refnow(
         Ok(_) => format!("成功将领地 **{fief_name}** 内区块 *{name}* 的参考图更新为当前状态。"),
         Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -328,7 +327,7 @@ pub(super) async fn setpos(
         Ok(_) => format!("成功将领地 **{fief_name}** 内的区块 *{name}* 坐标改为 `({x}, {y})`。"),
         Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
     };
-    ctx.say(msg).await?;
+    say!(ctx, msg);
     Ok(())
 }
 
@@ -375,7 +374,9 @@ pub(super) async fn info(
     });
 
     let result = repo.chunk().result_img(chunk.id).await?;
-    let mut reply = CreateReply::default().content(builder.build());
+    let mut reply = CreateReply::default()
+        .content(builder.build())
+        .ephemeral(true);
 
     if let Some(result) = result {
         reply = reply.attachment(CreateAttachment::bytes(result.into_inner(), "status.png"));

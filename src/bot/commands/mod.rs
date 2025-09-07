@@ -19,6 +19,16 @@ mod chunk;
 mod fief;
 mod user;
 
+macro_rules! say {
+    ($ctx:expr, $fmt:literal $($args:tt)*) => {
+        $ctx.send(poise::CreateReply::default().content(format!($fmt $($args)*)).ephemeral(true)).await?
+    };
+    ($ctx:expr, $str:expr) => {
+        $ctx.send(poise::CreateReply::default().content($str).ephemeral(true)).await?
+    };
+}
+pub(super) use say;
+
 pub(super) fn all() -> Vec<poise::Command<Data, Error>> {
     vec![
         wmhelp(),
@@ -62,14 +72,16 @@ pub async fn wmfetch(
     #[description = "区块在 Wplace 上的 Y 坐标"]
     y: usize,
 ) -> Result<(), Error> {
-    ctx.say("正在从 wplace.live 获取图片，请稍等...").await?;
+    say!(ctx, "正在从 wplace.live 获取图片，请稍等...");
     let Ok((_, img)) = net::fetch_current_image([x, y]).await else {
-        ctx.say("网络异常，请稍后重试。").await?;
+        say!(ctx, "网络异常，请稍后重试。");
         return Ok(());
     };
     let file_name = format!("chunk_{x}_{y}.png");
     ctx.send(
-        CreateReply::default().attachment(CreateAttachment::bytes(img.into_inner(), file_name)),
+        CreateReply::default()
+            .attachment(CreateAttachment::bytes(img.into_inner(), file_name))
+            .ephemeral(true),
     )
     .await?;
     Ok(())
@@ -97,7 +109,8 @@ pub async fn wmpermissions(ctx: Context<'_>) -> Result<(), Error> {
         .push("## 其他\n")
         .push("- `NONE`: 无任何权限\n")
         .push("- `ALL`: 拥有上述所有权限\n");
-    ctx.say(msg.build()).await?;
+
+    say!(ctx, msg.build());
     Ok(())
 }
 
@@ -116,7 +129,7 @@ async fn has_perms(repo: &Repositories, id: UserId, fief_id: FiefId, perms: Perm
         return false;
     };
 
-    perms.intersection(p) == perms
+    p.contains(perms)
 }
 
 pub(super) async fn start_with(
@@ -125,13 +138,7 @@ pub(super) async fn start_with(
     mut tx: Receiver<Event>,
     channel: ChannelId,
 ) -> Result<(), Error> {
-    channel.say(&http, "WMonitor 已开启。").await?;
-    channel
-        .say(
-            &http,
-            format!("已设置当前频道（id: `{channel}`）为通知频道。"),
-        )
-        .await?;
+    // channel.say(&http, "WMonitor 已在当前频道开启。").await?;
 
     tokio::spawn(async move {
         while let Some(event) = tx.recv().await {

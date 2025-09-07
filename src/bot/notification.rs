@@ -11,7 +11,7 @@ pub async fn notification_message(
     Ok(match event {
         Event::CheckSuccess(fief_id) => {
             let name = repo.fief().name(fief_id).await?;
-            result.content(format!("领地 **{name}** 目前无异常。"))
+            result.content(format!("领地 **{name}** 目前正常。"))
         }
 
         Event::DiffFound(fief_id, chunk_ids) => {
