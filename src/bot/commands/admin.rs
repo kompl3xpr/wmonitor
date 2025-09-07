@@ -3,7 +3,7 @@ use std::sync::atomic::Ordering;
 use poise::serenity_prelude::{Http, Mention};
 
 use crate::{
-    bot::{commands::id_of, notification::notification_message},
+    bot::commands::{id_of, start_with},
     domains::{User, UserId},
 };
 
@@ -14,40 +14,30 @@ use super::{Context, Error};
     prefix_command,
     slash_command,
     category = "管理员",
-    subcommands("role", "derole", "listrole", "op", "deop", "listop", "stop", "here")
+    subcommands("role", "derole", "listrole", "op", "deop", "listop", "stop", "start")
 )]
 pub(super) async fn wmadmin(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// 让 WMonitor 在这里发送通知
+/// 启用 WMonitor
 #[poise::command(prefix_command, slash_command, category = "管理员")]
-pub(super) async fn here(ctx: Context<'_>) -> Result<(), Error> {
+pub(super) async fn start(ctx: Context<'_>) -> Result<(), Error> {
     let channel = ctx.channel_id();
-    let http = Http::new(ctx.http().token());
-    let Some(mut tx) = ctx.data().event_rx.lock().await.take() else {
+    let Some(tx) = ctx.data().event_rx.lock().await.take() else {
         ctx.say("通知频道设置后无法更改，请重启程序并再次设置。")
             .await?;
         return Ok(());
     };
-    let repo = ctx.data().repo.clone();
-
-    tokio::spawn(async move {
-        while let Some(event) = tx.recv().await {
-            if let Ok(msg) = notification_message(&repo, event).await {
-                channel.send_message(&http, msg).await.ok();
-            }
-        }
-    });
-
-    ctx.say("已设置当前频道为通知频道。").await?;
-    Ok(())
+    let http = Http::new(ctx.http().token());
+    start_with(http, ctx.data().repo.clone(), tx, channel).await
 }
 
 /// 关闭 WMonitor
 #[poise::command(prefix_command, slash_command, category = "管理员")]
 pub(super) async fn stop(ctx: Context<'_>) -> Result<(), Error> {
     ctx.data().should_close.store(true, Ordering::SeqCst);
+    ctx.say("正在关闭 WMonitor...").await?;
     Ok(())
 }
 

@@ -9,6 +9,11 @@ pub async fn notification_message(
     let result = CreateMessage::new();
 
     Ok(match event {
+        Event::CheckSuccess(fief_id) => {
+            let name = repo.fief().name(fief_id).await?;
+            result.content(format!("领地 **{name}** 目前无异常。"))
+        }
+
         Event::DiffFound(fief_id, chunk_ids) => {
             let users = repo.fief().members(fief_id).await?;
             let mentions = users

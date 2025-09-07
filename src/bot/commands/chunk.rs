@@ -1,6 +1,9 @@
 use std::time::Duration;
 
-use poise::serenity_prelude::MessageCollector;
+use poise::{
+    CreateReply,
+    serenity_prelude::{CreateAttachment, MessageBuilder, MessageCollector},
+};
 
 use crate::{
     core::{ImagePng, Position},
@@ -181,7 +184,12 @@ pub(super) async fn setref(
             continue;
         }
         let file = msg.attachments.remove(0);
-        if file.content_type.as_ref().map(|ty| ty == "image/png").unwrap_or(false) {
+        if file
+            .content_type
+            .as_ref()
+            .map(|ty| ty == "image/png")
+            .unwrap_or(false)
+        {
             img = Some(file.download().await?);
             break;
         } else {
@@ -236,7 +244,12 @@ pub(super) async fn setmask(
             continue;
         }
         let file = msg.attachments.remove(0);
-        if file.content_type.as_ref().map(|ty| ty == "image/png").unwrap_or(false) {
+        if file
+            .content_type
+            .as_ref()
+            .map(|ty| ty == "image/png")
+            .unwrap_or(false)
+        {
             img = Some(file.download().await?);
             break;
         } else {
@@ -332,8 +345,42 @@ pub(super) async fn info(
     let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::NONE).await? else {
         return Ok(());
     };
-    let _ = &ctx.data().repo;
+    let repo = &ctx.data().repo;
+    let mut builder = MessageBuilder::new();
+    builder
+        .push("# 区块信息\n")
+        .push("区块名：*")
+        .push(chunk.name)
+        .push("*\n属于领地：**")
+        .push(fief_name)
+        .push("**\n位置：")
+        .push("(`")
+        .push(chunk.position.x.to_string())
+        .push("`, `")
+        .push(chunk.position.y.to_string())
+        .push("`)\n");
 
-    ctx.say(format!("{chunk:#?}")).await?;
+    let ref_ = repo.chunk().ref_img(chunk.id).await?;
+    builder.push("参考图：").push(if ref_.is_none() {
+        ":negative_squared_cross_mark: 未设置\n"
+    } else {
+        ":white_check_mark: 已设置\n"
+    });
+
+    let mask = repo.chunk().mask_img(chunk.id).await?;
+    builder.push("遮罩图：").push(if mask.is_none() {
+        ":negative_squared_cross_mark: 未设置\n"
+    } else {
+        ":white_check_mark: 已设置\n"
+    });
+
+    let result = repo.chunk().result_img(chunk.id).await?;
+    let mut reply = CreateReply::default().content(builder.build());
+
+    if let Some(result) = result {
+        reply = reply.attachment(CreateAttachment::bytes(result.into_inner(), "status.png"));
+    }
+
+    ctx.send(reply).await?;
     Ok(())
 }

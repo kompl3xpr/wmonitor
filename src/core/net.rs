@@ -28,7 +28,7 @@ pub async fn fetch_current_image(pos: impl Into<Position>) -> Result<(IsCached, 
 
     let dur = Duration::from_secs(cfg().network.sleep_between_requests_sec as u64);
     sleep(dur).await;
-    
+
     let Position { x, y } = pos;
     let resp = reqwest::get(format!(
         "https://backend.wplace.live/files/s0/tiles/{x}/{y}.png"

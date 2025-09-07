@@ -32,7 +32,7 @@ impl Default for ScopeRect {
     fn default() -> Self {
         ScopeRect {
             left_top: Position::new(0, 0),
-            right_bottom: Position::new(0, 0),
+            right_bottom: Position::new(1000, 1000),
         }
     }
 }

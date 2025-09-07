@@ -17,7 +17,6 @@ pub(super) async fn wmuser(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-
 async fn _try(
     ctx: Context<'_>,
     user: &Mention,
@@ -57,8 +56,7 @@ pub(super) async fn join(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) =
-        _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
+    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
     else {
         return Ok(());
     };
@@ -93,8 +91,7 @@ pub(super) async fn leave(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) =
-        _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
+    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
     else {
         return Ok(());
     };

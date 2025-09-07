@@ -6,8 +6,6 @@ pub struct Position {
     pub y: i64,
 }
 
-
-
 #[derive(Debug, sqlx::FromRow)]
 pub struct ChunkWithoutImgs {
     pub id: i64,

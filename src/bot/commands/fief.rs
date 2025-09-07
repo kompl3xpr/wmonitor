@@ -102,7 +102,8 @@ pub(super) async fn rename(
     lock_fief!(id);
 
     repo.fief().rename(id, &new_name).await?;
-    ctx.say("已变更领地名字。").await?;
+    ctx.say(format!("已将领地 **{name}** 的名字变更为 **{new_name}**。"))
+        .await?;
     Ok(())
 }
 
@@ -132,7 +133,10 @@ pub(super) async fn settime(
     repo.fief()
         .set_check_interval(id, chrono::Duration::minutes(interval as i64))
         .await?;
-    ctx.say(format!("已变更领地的检查间隔时间。")).await?;
+    ctx.say(format!(
+        "已变更 **{name}** 领地的检查间隔时间为 {interval} 分钟。"
+    ))
+    .await?;
     Ok(())
 }
 
@@ -156,14 +160,19 @@ pub(super) async fn check(
     lock_fief!(id);
 
     match repo.fief().mark_should_check_now(id).await {
-        Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
+        Ok(_) => {
+            ctx.say(format!(
+                "设置成功，领地 **{name}** 将在一分钟内被执行检查。"
+            ))
+            .await?
+        }
         Err(_) => ctx.say("设置失败。").await?,
     };
 
     Ok(())
 }
 
-/// 启动对领地的自动检查（创建领地时自动启用）
+/// 启动对领地的定期自动检查（创建领地时自动启用）
 #[poise::command(prefix_command, slash_command, category = "管理员")]
 pub(super) async fn enable(
     ctx: Context<'_>,
@@ -183,11 +192,12 @@ pub(super) async fn enable(
     lock_fief!(id);
 
     repo.fief().keep_check(id).await?;
-    ctx.say(format!("已启用对领地的自动检查。")).await?;
+    ctx.say(format!("已启用对领地 **{name}** 的定期自动检查。"))
+        .await?;
     Ok(())
 }
 
-/// 禁用对领地的自动检查
+/// 禁用对领地的定期自动检查
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn disable(
     ctx: Context<'_>,
@@ -214,14 +224,15 @@ pub(super) async fn disable(
         Some(dur) => {
             repo.fief().skip_check_for(id, dur, None).await?;
             ctx.say(format!(
-                "已禁用对领地的自动检查（持续时间: {} 小时）。",
+                "已禁用对领地 **{name}** 的定期自动检查（持续时间: {} 小时）。",
                 dur_hours.unwrap()
             ))
             .await?;
         }
         _ => {
             repo.fief().skip_check(id).await?;
-            ctx.say("已禁用对领地的自动检查。").await?;
+            ctx.say(format!("已禁用对领地 **{name}** 的定期自动检查。"))
+                .await?;
         }
     }
     Ok(())
@@ -240,13 +251,6 @@ pub(super) async fn info(
     };
 
     let mut builder = MessageBuilder::new();
-    builder
-        .push_bold("# 领地信息\n")
-        .push("名字：**")
-        .push(fief.name)
-        .push("**\n检查间隔：")
-        .push(fief.check_interval.num_minutes().to_string())
-        .push(" 分钟一次\n");
 
     let now = chrono::Utc::now();
     let last_check = now - fief.last_check;
@@ -268,10 +272,16 @@ pub(super) async fn info(
     };
 
     builder
-        .push("上次检查：")
+        .push("# 领地信息")
+        .push("\n名字：**")
+        .push(fief.name)
+        .push("**\n上次检查：")
         .push(last_check)
-        .push("\n自动检查：")
-        .push(skip_check_until);
+        .push("\n定期自动检查：")
+        .push(skip_check_until)
+        .push("\n定期自动检查间隔：")
+        .push(fief.check_interval.num_minutes().to_string())
+        .push(" 分钟一次\n");
 
     let mut chunks = vec![];
     for chunk_id in repo.fief().chunks(fief.id).await? {
@@ -282,7 +292,7 @@ pub(super) async fn info(
     }
 
     if !chunks.is_empty() {
-        builder.push("\n\n# 领地的区块信息\n");
+        builder.push("# 领地的区块信息\n");
         for (name, pos) in chunks {
             builder.push(format!(
                 "- 区块名：*{name}*\n  位置：`({}, {})`\n",
@@ -309,7 +319,7 @@ pub(super) async fn info(
     }
 
     if !members.is_empty() {
-        builder.push("\n# 领地成员\n");
+        builder.push("# 领地成员\n");
         for (name, perms) in members {
             builder.push(format!("- 用户：{name}\n  权限：{perms}\n"));
         }

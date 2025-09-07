@@ -21,7 +21,10 @@ impl Checker {
     }
 
     async fn send(&self, event: Event) {
-        self.event_tx.send_timeout(event, Duration::from_secs(10)).await.ok();
+        self.event_tx
+            .send_timeout(event, Duration::from_secs(10))
+            .await
+            .ok();
     }
 
     pub async fn check_one(&self, fief_id: FiefId) -> Result<()> {
@@ -60,13 +63,11 @@ impl Checker {
             let (ref_, mask) = (ref_?, mask?);
             let rec = algorithms::find_diffs(&ref_, &mask, &curr)?;
 
-            if !rec.diffs.is_empty() {
-                let result = algorithms::gen_visual_result(&ref_, &mask, &curr, &rec)?;
-                self.repo
-                    .chunk()
-                    .update_result_img(id, result.try_into().ok())
-                    .await?;
-            }
+            let result = algorithms::gen_visual_result(&ref_, &mask, &curr, &rec)?;
+            self.repo
+                .chunk()
+                .update_result_img(id, result.try_into().ok())
+                .await?;
 
             self.repo
                 .chunk()
@@ -86,6 +87,8 @@ impl Checker {
 
         if !failed_chunks.is_empty() {
             self.send(Event::DiffFound(fief_id, failed_chunks)).await;
+        } else {
+            self.send(Event::CheckSuccess(fief_id)).await;
         }
 
         Ok(())

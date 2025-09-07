@@ -3,15 +3,15 @@
 mod commands;
 mod notification;
 
-use poise::serenity_prelude as serenity;
-use tokio::sync::{Mutex, mpsc::Receiver};
+use poise::serenity_prelude::{self as serenity, CacheHttp, ChannelId, Http};
 use std::{
     sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
+use tokio::sync::{Mutex, mpsc::Receiver};
 use tracing::{error, info, warn};
 
-use crate::check::Event;
+use crate::{bot::commands::start_with, cfg, check::Event, core::get_or_env};
 
 // Types used by all command functions
 type Error = anyhow::Error;
@@ -41,10 +41,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
-pub async fn new_client(
-    token: &impl AsRef<str>,
-    data: Data,
-) -> anyhow::Result<serenity::Client> {
+pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<serenity::Client> {
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
     let options = poise::FrameworkOptions {
@@ -69,6 +66,17 @@ pub async fn new_client(
             Box::pin(async move {
                 info!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+
+                let channel = get_or_env(
+                    &cfg().notification.discord_channel,
+                    "",
+                    "NOTIFICATION_CHANNEL_ID",
+                );
+                let channel = ChannelId::new(channel.parse::<u64>().unwrap());
+                let http = Http::new(ctx.http().token());
+                let rx = data.event_rx.lock().await.take().unwrap();
+                start_with(http, data.repo.clone(), rx, channel).await.ok();
+
                 Ok(data)
             })
         })

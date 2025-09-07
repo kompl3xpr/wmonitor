@@ -9,9 +9,24 @@ use image::{ImageFormat, ImageReader};
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 use tap::prelude::*;
+use tracing::{error, info};
 
 pub const WPLACE_CHUNK_WIDTH: usize = 1000;
 pub const WPLACE_CHUNK_HEIGHT: usize = 1000;
+
+pub fn get_or_env(cfg: impl Into<String>, none: impl AsRef<str>, env: impl AsRef<str>) -> String {
+    let (cfg, none, env) = (cfg.into(), none.as_ref(), env.as_ref());
+    match &cfg == none {
+        true => {
+            info!("attempting to use environment variable `{env}`...");
+            std::env::var(env).unwrap_or_else(|e| {
+                error!("failed to get variable `{env}`: {e}");
+                panic!();
+            })
+        }
+        _ => cfg,
+    }
+}
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Position {

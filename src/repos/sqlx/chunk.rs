@@ -177,7 +177,6 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(result.0.map(ImagePng::new))
     }
 
-
     async fn diff_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
         let result: (Option<Vec<u8>>,) =
             sqlx::query_as("SELECT img_diff FROM Chunks WHERE id = $1")

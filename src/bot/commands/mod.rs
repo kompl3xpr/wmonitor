@@ -1,10 +1,13 @@
 use poise::{
     CreateReply,
-    serenity_prelude::{CreateAttachment, MessageBuilder},
+    serenity_prelude::{ChannelId, CreateAttachment, Http, MessageBuilder},
 };
+use tokio::sync::mpsc::Receiver;
 
 use crate::{
     Repositories,
+    bot::notification::notification_message,
+    check::Event,
     domains::{FiefId, Permissions, UserId},
     net,
 };
@@ -114,4 +117,28 @@ async fn has_perms(repo: &Repositories, id: UserId, fief_id: FiefId, perms: Perm
     };
 
     perms.intersection(p) == perms
+}
+
+pub(super) async fn start_with(
+    http: Http,
+    repo: Repositories,
+    mut tx: Receiver<Event>,
+    channel: ChannelId,
+) -> Result<(), Error> {
+    channel.say(&http, "WMonitor 已开启。").await?;
+    channel
+        .say(
+            &http,
+            format!("已设置当前频道（id: `{channel}`）为通知频道。"),
+        )
+        .await?;
+
+    tokio::spawn(async move {
+        while let Some(event) = tx.recv().await {
+            if let Ok(msg) = notification_message(&repo, event).await {
+                channel.send_message(&http, msg).await.ok();
+            }
+        }
+    });
+    Ok(())
 }
