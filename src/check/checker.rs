@@ -1,23 +1,31 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
 use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
-use crate::check::algorithms;
+use crate::check::{RetryTimes, algorithms};
 use crate::core::ImagePng;
 use crate::domains::{ChunkId, FiefId};
 use crate::{Repositories, net};
 
 use super::Event;
 
+pub const MAX_RETRY_TIMES: usize = 3;
+
 pub struct Checker {
     event_tx: Sender<Event>,
     repo: Repositories,
+    retries: HashMap<FiefId, usize>,
 }
 
 impl Checker {
-    pub fn new(repo: Repositories, event_tx: Sender<Event>) -> Self {
-        Self { repo, event_tx }
+    pub fn new(repositories: Repositories, event_sender: Sender<Event>) -> Self {
+        Self {
+            repo: repositories,
+            event_tx: event_sender,
+            retries: HashMap::new(),
+        }
     }
 
     async fn send(&self, event: Event) {
@@ -27,7 +35,7 @@ impl Checker {
             .ok();
     }
 
-    pub async fn check_one(&self, fief_id: FiefId) -> Result<()> {
+    pub async fn check_one(&mut self, fief_id: FiefId) -> Result<()> {
         crate::core::lock_fief!(fief_id);
 
         let Ok(chunks) = self.repo.fief().chunks(fief_id).await else {
@@ -41,20 +49,19 @@ impl Checker {
             let ref_ = self.repo.chunk().ref_img(id).await?;
             let Some(ref_) = ref_.map(ImagePng::try_to_rgba) else {
                 self.send(Event::ChunkRefMissing(fief_id, id)).await;
-                return Err(anyhow::anyhow!("ref image not found"));
+                return Ok(true);
             };
 
             let mask = self.repo.chunk().mask_img(id).await?;
             let Some(mask) = mask.map(ImagePng::try_to_gray) else {
                 self.send(Event::ChunkMaskMissing(fief_id, id)).await;
-                return Err(anyhow::anyhow!("mask image not found"));
+                return Ok(true);
             };
 
             let curr = match net::fetch_current_image(pos).await {
                 Ok(curr) => curr,
                 Err(e) => {
-                    let msg = format!("网络错误: {e}");
-                    self.send(Event::NetworkError(msg)).await;
+                    self.send(Event::NetworkError(e.to_string())).await;
                     return Err(e);
                 }
             };
@@ -78,13 +85,28 @@ impl Checker {
         };
 
         let mut failed_chunks = vec![];
+        let mut has_failed_chunks = false;
         for id in chunks {
-            if !chunk_checker(id).await.unwrap_or(true) {
-                failed_chunks.push(id);
+            match chunk_checker(id).await {
+                Ok(true) => (),
+                Ok(false) => failed_chunks.push(id),
+                Err(_) => has_failed_chunks = true,
             }
         }
-        self.repo.fief().update_last_check(fief_id, None).await?;
 
+        if has_failed_chunks {
+            let times = self.retries.entry(fief_id).or_insert(0);
+            *times = MAX_RETRY_TIMES.min(*times) + 1;
+            if *times > MAX_RETRY_TIMES {
+                self.repo.fief().update_last_check(fief_id, None).await?;
+            }
+            let event = Event::CheckFailed(fief_id, RetryTimes(*times - 1));
+            self.send(event).await;
+            return Ok(());
+        }
+
+        self.retries.remove(&fief_id);
+        self.repo.fief().update_last_check(fief_id, None).await?;
         if !failed_chunks.is_empty() {
             self.send(Event::DiffFound(fief_id, failed_chunks)).await;
         } else {
@@ -94,7 +116,7 @@ impl Checker {
         Ok(())
     }
 
-    pub async fn check_all(&self) -> Result<()> {
+    pub async fn check_all(&mut self) -> Result<()> {
         let Ok(fiefs) = self.repo.fief().fiefs_to_check().await else {
             return Err(anyhow::anyhow!("failed to get fiefs to check"));
         };

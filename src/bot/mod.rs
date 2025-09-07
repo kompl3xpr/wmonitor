@@ -71,6 +71,11 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
                 Ok(true)
             })
         }),
+        pre_command: |ctx| {
+            Box::pin(async move {
+                command_logger(&ctx);
+            })
+        },
         // The global error handler for all error cases that may occur
         on_error: |error| Box::pin(on_error(error)),
         // Enforce command checks even for owners (enforced by default)
@@ -105,4 +110,12 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
         .await?;
 
     Ok(client)
+}
+
+fn command_logger(ctx: &Context<'_>) {
+    let author = ctx.author();
+    let (id, name) = (author.id, &author.name);
+    let cmd = ctx.command();
+    let cmd_name = &cmd.qualified_name;
+    info!("@{name}(id: `{id}`): /{cmd_name}...");
 }

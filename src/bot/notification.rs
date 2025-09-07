@@ -1,5 +1,8 @@
 use super::Error;
-use crate::{Repositories, check::Event};
+use crate::{
+    Repositories,
+    check::{Event, MAX_RETRY_TIMES, RetryTimes},
+};
 use poise::serenity_prelude::{CreateAttachment, CreateMessage, Mention, MessageBuilder};
 
 pub async fn notification_message(
@@ -9,6 +12,23 @@ pub async fn notification_message(
     let result = CreateMessage::new();
 
     Ok(match event {
+        Event::CheckFailed(fief_id, RetryTimes(times)) => {
+            let name = repo.fief().name(fief_id).await?;
+            let mut builder = MessageBuilder::new();
+            builder.push(format!(
+                "领地 **{name}** 检查失败（重试次数: {times}/{MAX_RETRY_TIMES}）。"
+            ));
+            if times == MAX_RETRY_TIMES {
+                let users = repo.fief().members(fief_id).await?;
+                let mentions = users
+                    .into_iter()
+                    .map(|u| Mention::User((u.0 as u64).into()))
+                    .fold("\n".to_string(), |s, m| s + m.to_string().as_str() + " ");
+                builder.push(mentions);
+            }
+            result.content(builder.build())
+        }
+
         Event::CheckSuccess(fief_id) => {
             let name = repo.fief().name(fief_id).await?;
             result.content(format!("领地 **{name}** 目前正常。"))

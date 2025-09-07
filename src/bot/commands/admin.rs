@@ -40,30 +40,6 @@ pub(super) async fn stop(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-// /// 添加可以使用 WMonitor 的身份组
-// #[poise::command(prefix_command, slash_command, category = "管理员")]
-// pub(super) async fn role(
-//     _ctx: Context<'_>,
-//     #[rename = "身份组"] _role: Mention,
-// ) -> Result<(), Error> {
-//     todo!()
-// }
-
-// /// 删除可以使用 WMonitor 的身份组
-// #[poise::command(prefix_command, slash_command, category = "管理员")]
-// pub(super) async fn derole(
-//     _ctx: Context<'_>,
-//     #[rename = "身份组"] _role: Mention,
-// ) -> Result<(), Error> {
-//     todo!()
-// }
-
-// /// 显示所有权限组
-// #[poise::command(prefix_command, slash_command, category = "管理员")]
-// pub(super) async fn listrole(_ctx: Context<'_>) -> Result<(), Error> {
-//     todo!()
-// }
-
 /// 显示所有管理员
 #[poise::command(prefix_command, slash_command, category = "管理员")]
 pub(super) async fn listop(ctx: Context<'_>) -> Result<(), Error> {

@@ -22,7 +22,7 @@ impl WMonitor {
         let should_close_atomic = Arc::new(AtomicBool::new(false));
 
         let should_close = should_close_atomic.clone();
-        let checker = Checker::new(self.repo.clone(), tx);
+        let mut checker = Checker::new(self.repo.clone(), tx);
         let check_task = tokio::spawn(async move {
             while !should_close.load(Ordering::SeqCst) {
                 checker.check_all().await.ok();
