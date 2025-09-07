@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use poise::serenity_prelude::{EditMessage, MessageBuilder, MessageCollector};
+use poise::serenity_prelude::MessageCollector;
 
 use crate::{
     core::{ImagePng, Position},
