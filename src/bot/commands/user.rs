@@ -1,6 +1,6 @@
 use crate::{
     bot::commands::{has_perms, id_of},
-    domains::{Permissions, UserId},
+    domains::{FiefId, Permissions, UserId},
 };
 use poise::serenity_prelude::{Mention, MessageBuilder};
 
@@ -17,30 +17,29 @@ pub(super) async fn wmuser(_: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// 将用户添加进领地
-#[poise::command(prefix_command, slash_command, category = "用户")]
-pub(super) async fn join(
-    ctx: Context<'_>,
-    #[rename = "用户"] user: Mention,
-    #[rename = "领地名"] fief_name: String,
-) -> Result<(), Error> {
-    let repo = &ctx.data().repo;
 
+async fn _try(
+    ctx: Context<'_>,
+    user: &Mention,
+    fief_name: &str,
+    perms: Permissions,
+) -> Result<Option<(UserId, FiefId)>, Error> {
+    let repo = &ctx.data().repo;
     let Ok(fief_id) = repo.fief().id(&fief_name).await else {
         ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
             .await?;
-        return Ok(());
+        return Ok(None);
     };
 
     let author_id = id_of(ctx.author());
-    if !has_perms(repo, author_id, fief_id, Permissions::MEMBER_INVITE).await {
-        ctx.say("操作失败，权限不足。").await?;
-        return Ok(());
+    if !has_perms(repo, author_id, fief_id, perms).await {
+        ctx.say("错误：操作失败，权限不足。").await?;
+        return Ok(None);
     }
 
     let Mention::User(user_id) = user else {
         ctx.say(format!("参数错误：请@用户作为输入。")).await?;
-        return Ok(());
+        return Ok(None);
     };
 
     let user_id = UserId(user_id.get() as i64);
@@ -48,6 +47,23 @@ pub(super) async fn join(
         ctx.say(format!("无法存储用户信息: {e}。")).await?;
     }
 
+    Ok(Some((user_id, fief_id)))
+}
+
+/// 将用户添加进领地
+#[poise::command(prefix_command, slash_command, category = "用户")]
+pub(super) async fn join(
+    ctx: Context<'_>,
+    #[rename = "用户"] user: Mention,
+    #[rename = "领地名"] fief_name: String,
+) -> Result<(), Error> {
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
+    else {
+        return Ok(());
+    };
+
+    let repo = &ctx.data().repo;
     match repo.user().join(user_id, fief_id, None).await {
         Ok(true) => {
             ctx.say(format!("已添加用户 {user} 至领地 **{fief_name}**。"))
@@ -77,29 +93,12 @@ pub(super) async fn leave(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
+    else {
+        return Ok(());
+    };
     let repo = &ctx.data().repo;
-
-    let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
-        return Ok(());
-    };
-
-    let author_id = id_of(ctx.author());
-    if !has_perms(repo, author_id, fief_id, Permissions::MEMBER_KICK).await {
-        ctx.say("操作失败，权限不足。").await?;
-        return Ok(());
-    }
-
-    let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
-        return Ok(());
-    };
-
-    let user_id = UserId(user_id.get() as i64);
-    if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
-    }
 
     match repo.user().leave(user_id, fief_id).await {
         Ok(true) => {
@@ -134,29 +133,12 @@ pub(super) async fn allow(
     #[description = "可以通过 `/wmpermissions` 了解所有权限"]
     permission: String,
 ) -> Result<(), Error> {
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_EDIT_PERMS).await?
+    else {
+        return Ok(());
+    };
     let repo = &ctx.data().repo;
-
-    let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
-        return Ok(());
-    };
-
-    let author_id = id_of(ctx.author());
-    if !has_perms(repo, author_id, fief_id, Permissions::MEMBER_EDIT_PERMS).await {
-        ctx.say("操作失败，权限不足。").await?;
-        return Ok(());
-    }
-
-    let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
-        return Ok(());
-    };
-
-    let user_id = UserId(user_id.get() as i64);
-    if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
-    }
 
     let Ok(perms) = repo.user().permissions_in(user_id, fief_id).await else {
         ctx.say(format!("错误：用户 {user} 并不属于领地 **{fief_name}**。"))
@@ -203,29 +185,12 @@ pub(super) async fn deny(
     #[description = "可以通过 `/wmpermissions` 了解所有权限"]
     permission: String,
 ) -> Result<(), Error> {
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_EDIT_PERMS).await?
+    else {
+        return Ok(());
+    };
     let repo = &ctx.data().repo;
-
-    let Ok(fief_id) = repo.fief().id(&fief_name).await else {
-        ctx.say(format!("错误：领地 **{fief_name}** 不存在。"))
-            .await?;
-        return Ok(());
-    };
-
-    let author_id = id_of(ctx.author());
-    if !has_perms(repo, author_id, fief_id, Permissions::MEMBER_EDIT_PERMS).await {
-        ctx.say("操作失败，权限不足。").await?;
-        return Ok(());
-    }
-
-    let Mention::User(user_id) = user else {
-        ctx.say(format!("参数错误：请@用户作为输入。")).await?;
-        return Ok(());
-    };
-
-    let user_id = UserId(user_id.get() as i64);
-    if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
-    }
 
     let Ok(perms) = repo.user().permissions_in(user_id, fief_id).await else {
         ctx.say(format!("错误：用户 {user} 并不属于领地 **{fief_name}**。"))

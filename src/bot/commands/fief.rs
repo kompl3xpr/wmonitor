@@ -1,4 +1,4 @@
-use poise::serenity_prelude::MessageBuilder;
+use poise::serenity_prelude::{Mention, MessageBuilder};
 
 use super::{Context, Error};
 use crate::{
@@ -32,7 +32,7 @@ pub(super) async fn add(
 
     let user_id = id_of(ctx.author());
     if let Err(e) = repo.user().create(user_id, false).await {
-        ctx.say(format!("无法存储用户信息: {e}。")).await?;
+        ctx.say(format!("错误：无法存储用户信息: {e}。")).await?;
     }
 
     let Some(id) = repo.fief().create(&name, None).await? else {
@@ -65,7 +65,7 @@ pub(super) async fn remove(
 
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_DELETE).await {
-        ctx.say("操作失败，权限不足。").await?;
+        ctx.say("错误：操作失败，权限不足。").await?;
         return Ok(());
     }
 
@@ -96,7 +96,7 @@ pub(super) async fn rename(
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("操作失败，权限不足。").await?;
+        ctx.say("错误：操作失败，权限不足。").await?;
         return Ok(());
     }
     lock_fief!(id);
@@ -124,7 +124,7 @@ pub(super) async fn settime(
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("操作失败，权限不足。").await?;
+        ctx.say("错误：操作失败，权限不足。").await?;
         return Ok(());
     }
     lock_fief!(id);
@@ -140,27 +140,25 @@ pub(super) async fn settime(
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn check(
     ctx: Context<'_>,
-    #[rename = "领地名"] _name: String,
+    #[rename = "领地名"] name: String,
 ) -> Result<(), Error> {
-    // let repo = &ctx.data().repo;
+    let repo = &ctx.data().repo;
 
-    // let Ok(id) = repo.fief().id(&name).await else {
-    //     ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
-    //     return Ok(());
-    // };
-    // let user_id = id_of(ctx.author());
-    // if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-    //     ctx.say("操作失败，权限不足。").await?;
-    //     return Ok(());
-    // }
-    // lock_fief!(id);
+    let Ok(id) = repo.fief().id(&name).await else {
+        ctx.say(format!("错误：领地 **{name}** 不存在。")).await?;
+        return Ok(());
+    };
+    let user_id = id_of(ctx.author());
+    if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
+        ctx.say("错误：操作失败，权限不足。").await?;
+        return Ok(());
+    }
+    lock_fief!(id);
 
-    // let date = chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap();
-    // match repo.fief().update_last_check(id, Some(date)).await {
-    //     Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
-    //     Err(_) => ctx.say("设置失败。").await?,
-    // };
-    ctx.say("目前暂不支持手动检查功能。").await?;
+    match repo.fief().mark_should_check_now(id).await {
+        Ok(_) => ctx.say("设置成功，领地将在一分钟内被执行检查。").await?,
+        Err(_) => ctx.say("设置失败。").await?,
+    };
 
     Ok(())
 }
@@ -179,7 +177,7 @@ pub(super) async fn enable(
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("操作失败，权限不足。").await?;
+        ctx.say("错误：操作失败，权限不足。").await?;
         return Ok(());
     }
     lock_fief!(id);
@@ -206,7 +204,7 @@ pub(super) async fn disable(
     };
     let user_id = id_of(ctx.author());
     if !has_perms(repo, user_id, id, Permissions::FIEF_EDIT).await {
-        ctx.say("操作失败，权限不足。").await?;
+        ctx.say("错误：操作失败，权限不足。").await?;
         return Ok(());
     }
     lock_fief!(id);
@@ -274,6 +272,48 @@ pub(super) async fn info(
         .push(last_check)
         .push("\n自动检查：")
         .push(skip_check_until);
+
+    let mut chunks = vec![];
+    for chunk_id in repo.fief().chunks(fief.id).await? {
+        let Ok(chunk) = repo.chunk().chunk_by_id(chunk_id).await else {
+            continue;
+        };
+        chunks.push((chunk.name, chunk.position));
+    }
+
+    if !chunks.is_empty() {
+        builder.push("\n\n# 领地的区块信息\n");
+        for (name, pos) in chunks {
+            builder.push(format!(
+                "- 区块名：*{name}*\n  位置：`({}, {})`\n",
+                pos.x, pos.y
+            ));
+        }
+    }
+
+    let mut members = vec![];
+    for member_id in repo.fief().members(fief.id).await? {
+        let perms = repo.user().permissions_in(member_id, fief.id).await?;
+        let perms_str = perms
+            .iter_names()
+            .map(|(s, _)| s)
+            .fold(String::new(), |a, s| a + "`" + s + "` ");
+        members.push((
+            Mention::User((member_id.0 as u64).into()),
+            if perms_str == "" {
+                "无".into()
+            } else {
+                perms_str
+            },
+        ));
+    }
+
+    if !members.is_empty() {
+        builder.push("\n# 领地成员\n");
+        for (name, perms) in members {
+            builder.push(format!("- 用户：{name}\n  权限：{perms}\n"));
+        }
+    }
 
     ctx.say(builder.build()).await?;
     Ok(())

@@ -58,6 +58,7 @@ pub trait FiefRepo: Sync + Send {
         date: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<()>;
     async fn set_check_interval(&self, id: FiefId, interval: chrono::Duration) -> Result<()>;
+    async fn mark_should_check_now(&self, id: FiefId) -> Result<()>;
     async fn skip_check(&self, id: FiefId) -> Result<()>;
     async fn keep_check(&self, id: FiefId) -> Result<()>;
     async fn skip_check_for(

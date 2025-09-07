@@ -6,9 +6,9 @@ use std::{
     time::Duration,
 };
 
-use crate::{bot, check::Checker, Repositories};
+use crate::{Repositories, bot, check::Checker};
 use anyhow::Result;
-use tokio::time::sleep;
+use tokio::{sync::Mutex, time::sleep};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {
@@ -18,7 +18,7 @@ pub struct WMonitor {
 
 impl WMonitor {
     pub async fn run(self) -> Result<()> {
-        let (tx, mut rx) = tokio::sync::mpsc::channel(100);
+        let (tx, rx) = tokio::sync::mpsc::channel(100);
         let should_close_atomic = Arc::new(AtomicBool::new(false));
 
         let should_close = should_close_atomic.clone();
@@ -30,21 +30,20 @@ impl WMonitor {
             }
         });
 
-        let notify_task = tokio::spawn(async move {
-            while let Some(ev) = rx.recv().await {
-                println!("{ev:?}");
-            }
-        });
-
-        let should_close = should_close_atomic.clone();
-        let mut bot = bot::new_client(self.repo, &self.discord_token).await?;
+        let data = bot::Data {
+            repo: self.repo.clone(),
+            event_rx: Mutex::new(Some(rx)),
+            should_close: should_close_atomic.clone(),
+        };
+        let mut bot = bot::new_client(&self.discord_token, data).await?;
         let bot_task = tokio::spawn(async move {
             bot.start().await.unwrap();
         });
 
-        tokio::try_join!(check_task, notify_task, bot_task)?;
+        tokio::select!(
+            _ = check_task => (),
+            _ = bot_task => (),
+        );
         Ok(())
     }
 }
-
-

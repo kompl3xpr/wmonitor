@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS Fiefs (
     name TEXT UNIQUE NOT NULL,
     check_interval_min INTEGER NOT NULL,
     last_check TEXT NOT NULL,
-    skip_check_until TEXT NOT NULL
+    skip_check_until TEXT NOT NULL,
+    should_check_now BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Members (
@@ -34,15 +35,6 @@ CREATE TABLE IF NOT EXISTS Chunks (
     FOREIGN KEY (fief_id) REFERENCES Fiefs(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT NOT NULL,
-    kind TEXT NOT NULL,
-    value TEXT NOT NULL
-);
-
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fiefs_name ON Fiefs (name);
 CREATE INDEX IF NOT EXISTS idx_members_user_id ON Members (user_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_fief_id ON Chunks (fief_id);
-CREATE INDEX IF NOT EXISTS idx_events_date ON Events (date);
-CREATE INDEX IF NOT EXISTS idx_events_kind ON Events (kind);

@@ -38,13 +38,14 @@ impl FiefRepo for SqlxFiefRepo {
 
         let result = sqlx::query(
             "INSERT INTO Fiefs
-            (name, check_interval_min, last_check, skip_check_until)
-            VALUES ($1, $2, $3, $4)",
+            (name, check_interval_min, last_check, skip_check_until, should_check_now)
+            VALUES ($1, $2, $3, $4, $5)",
         )
         .bind(name)
         .bind(check_interval.max(min_interval))
         .bind(ago)
         .bind(ago)
+        .bind(false)
         .execute(&*self.0)
         .await;
 
@@ -104,8 +105,9 @@ impl FiefRepo for SqlxFiefRepo {
     async fn fiefs_to_check(&self) -> Result<Vec<Fief>> {
         Ok(sqlx::query_as(
             "SELECT * FROM Fiefs
-            WHERE datetime(last_check, '+' || check_interval_min || ' minutes') < datetime('now')
-            AND (skip_check_until IS NULL OR datetime(skip_check_until) < datetime('now'))",
+            WHERE should_check_now = TRUE OR
+            (datetime(last_check, '+' || check_interval_min || ' minutes') < datetime('now')
+            AND (skip_check_until IS NULL OR datetime(skip_check_until) < datetime('now')))",
         )
         .fetch_all(&*self.0)
         .await?
@@ -191,7 +193,7 @@ impl FiefRepo for SqlxFiefRepo {
         date: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<()> {
         let date = date.unwrap_or(chrono::Utc::now());
-        sqlx::query("UPDATE Fiefs SET last_check = $1 WHERE id = $2")
+        sqlx::query("UPDATE Fiefs SET last_check = $1, should_check_now = FALSE WHERE id = $2")
             .bind(date)
             .bind(id.0)
             .execute(&*self.0)
@@ -221,6 +223,14 @@ impl FiefRepo for SqlxFiefRepo {
     async fn keep_check(&self, id: FiefId) -> Result<()> {
         sqlx::query("UPDATE Fiefs SET skip_check_until = $1 WHERE id = $2")
             .bind(chrono::Utc.with_ymd_and_hms(1919, 11, 4, 5, 1, 4).unwrap())
+            .bind(id.0)
+            .execute(&*self.0)
+            .await?;
+        Ok(())
+    }
+
+    async fn mark_should_check_now(&self, id: FiefId) -> Result<()> {
+        sqlx::query("UPDATE Fiefs SET should_check_now = TRUE WHERE id = $1")
             .bind(id.0)
             .execute(&*self.0)
             .await?;

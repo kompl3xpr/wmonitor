@@ -1,5 +1,5 @@
 use tracing::{error, info, level_filters::LevelFilter, warn};
-use wmonitor::{Repositories, app, bot, cfg, init_cfg};
+use wmonitor::{Repositories, app, cfg, init_cfg};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

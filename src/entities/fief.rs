@@ -5,6 +5,7 @@ pub struct Fief {
     pub check_interval_min: i64,
     pub last_check: chrono::DateTime<chrono::Utc>,
     pub skip_check_until: chrono::DateTime<chrono::Utc>,
+    pub should_check_now: bool,
 }
 
 mod test {

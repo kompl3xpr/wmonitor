@@ -7,7 +7,6 @@ pub struct Repositories {
     user: Box<dyn traits::UserRepo>,
     chunk: Box<dyn traits::ChunkRepo>,
     fief: Box<dyn traits::FiefRepo>,
-    event: Box<dyn traits::EventRepo>,
 }
 
 impl Clone for Repositories {
@@ -16,7 +15,6 @@ impl Clone for Repositories {
             user: self.user().clone(),
             chunk: self.chunk().clone(),
             fief: self.fief().clone(),
-            event: self.event().clone(),
         }
     }
 }
@@ -33,7 +31,6 @@ impl Repositories {
             user: Box::new(SqlxUserRepo::new(Arc::clone(&pool))),
             fief: Box::new(SqlxFiefRepo::new(Arc::clone(&pool))),
             chunk: Box::new(SqlxChunkRepo::new(Arc::clone(&pool))),
-            event: Box::new(SqlxEventRepo::new(pool)),
         })
     }
 
@@ -47,9 +44,5 @@ impl Repositories {
 
     pub fn chunk(&self) -> &dyn traits::ChunkRepo {
         &*self.chunk
-    }
-
-    pub fn event(&self) -> &dyn traits::EventRepo {
-        &*self.event
     }
 }

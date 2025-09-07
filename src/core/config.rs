@@ -39,7 +39,6 @@ pub struct CheckConfig {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct NotificationConfig {
     pub enabled: bool,
-    pub event_filter: Vec<String>,
     pub discord_channel: String,
 }
 

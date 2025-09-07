@@ -29,7 +29,7 @@ pub(super) fn all() -> Vec<poise::Command<Data, Error>> {
 }
 
 /// 展示所有指令
-#[poise::command(prefix_command, track_edits, slash_command, category = "基本指令")]
+#[poise::command(prefix_command, slash_command, category = "基本指令")]
 pub async fn wmhelp(
     ctx: Context<'_>,
     // #[description = "展示 WMonitor 的所有指令"]
@@ -48,7 +48,7 @@ pub async fn wmhelp(
 }
 
 /// 根据坐标从 wplace.live 获取区块图片
-#[poise::command(prefix_command, track_edits, slash_command, category = "基本指令")]
+#[poise::command(prefix_command, slash_command, category = "基本指令")]
 pub async fn wmfetch(
     ctx: Context<'_>,
     #[rename = "x"]
@@ -73,7 +73,7 @@ pub async fn wmfetch(
 }
 
 /// 列出用户权限种类
-#[poise::command(prefix_command, track_edits, slash_command, category = "基本指令")]
+#[poise::command(prefix_command, slash_command, category = "基本指令")]
 pub async fn wmpermissions(ctx: Context<'_>) -> Result<(), Error> {
     let mut msg = MessageBuilder::new();
     msg.push("# 权限说明\n")
