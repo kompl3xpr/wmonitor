@@ -23,7 +23,8 @@ async fn main() -> anyhow::Result<()> {
         .discord_token(discord_token)
         .repo(Repositories::from_sqlx(&datebase_url).await?)
         .build();
-
+    
     wmonitor.run().await?;
+    info!("WMonitor has been closed successfully");
     Ok(())
 }

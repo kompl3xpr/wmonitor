@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::time::Duration;
-
+use tracing::{info, warn};
 use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
@@ -36,6 +36,7 @@ impl Checker {
     }
 
     pub async fn check_one(&mut self, fief_id: FiefId) -> Result<()> {
+        info!("running check for fief {}...", fief_id.0);
         crate::core::lock_fief!(fief_id);
 
         let Ok(chunks) = self.repo.fief().chunks(fief_id).await else {
@@ -48,12 +49,14 @@ impl Checker {
 
             let ref_ = self.repo.chunk().ref_img(id).await?;
             let Some(ref_) = ref_.map(ImagePng::try_to_rgba) else {
+                warn!("reference image of chunk {}.{} is null", fief_id.0, id.0);
                 self.send(Event::ChunkRefMissing(fief_id, id)).await;
                 return Ok(true);
             };
 
             let mask = self.repo.chunk().mask_img(id).await?;
             let Some(mask) = mask.map(ImagePng::try_to_gray) else {
+                warn!("mask image of chunk {}.{} is null", fief_id.0, id.0);
                 self.send(Event::ChunkMaskMissing(fief_id, id)).await;
                 return Ok(true);
             };
@@ -61,6 +64,7 @@ impl Checker {
             let curr = match net::fetch_current_image(pos).await {
                 Ok(curr) => curr,
                 Err(e) => {
+                    warn!("{e}");
                     self.send(Event::NetworkError(e.to_string())).await;
                     return Err(e);
                 }
@@ -102,14 +106,17 @@ impl Checker {
             }
             let event = Event::CheckFailed(fief_id, RetryTimes(*times - 1));
             self.send(event).await;
+            info!("failed to check fief {}", fief_id.0);
             return Ok(());
         }
 
         self.retries.remove(&fief_id);
         self.repo.fief().update_last_check(fief_id, None).await?;
         if !failed_chunks.is_empty() {
+            info!("there are abnormal pixels in fief {}", fief_id.0);
             self.send(Event::DiffFound(fief_id, failed_chunks)).await;
         } else {
+            info!("fief {} has no problem", fief_id.0);
             self.send(Event::CheckSuccess(fief_id)).await;
         }
 

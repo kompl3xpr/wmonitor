@@ -115,7 +115,6 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
 fn command_logger(ctx: &Context<'_>) {
     let author = ctx.author();
     let (id, name) = (author.id, &author.name);
-    let cmd = ctx.command();
-    let cmd_name = &cmd.qualified_name;
-    info!("@{name}(id: `{id}`): /{cmd_name}...");
+    let cmd = ctx.invocation_string();
+    info!("@{name}(`{id}`): {cmd}");
 }

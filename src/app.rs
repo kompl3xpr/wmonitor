@@ -9,6 +9,7 @@ use std::{
 use crate::{Repositories, bot, check::Checker};
 use anyhow::Result;
 use tokio::{sync::Mutex, time::sleep};
+use tracing::{error, info};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {
@@ -24,8 +25,11 @@ impl WMonitor {
         let should_close = should_close_atomic.clone();
         let mut checker = Checker::new(self.repo.clone(), tx);
         let check_task = tokio::spawn(async move {
+            info!("running checker...");
             while !should_close.load(Ordering::SeqCst) {
-                checker.check_all().await.ok();
+                if let Err(e) = checker.check_all().await {
+                    error!("{e}");
+                }
                 sleep(Duration::from_secs(60)).await;
             }
         });
@@ -37,13 +41,17 @@ impl WMonitor {
         };
         let mut bot = bot::new_client(&self.discord_token, data).await?;
         let bot_task = tokio::spawn(async move {
-            bot.start().await.unwrap();
+            info!("running bot...");
+            if let Err(e) = bot.start().await {
+                error!("{e}");
+            }
         });
 
         tokio::select!(
             _ = check_task => (),
             _ = bot_task => (),
         );
+
         Ok(())
     }
 }
