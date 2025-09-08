@@ -1,10 +1,10 @@
+use crate::core::log::error;
 use serde::{Deserialize, Serialize};
 use std::{
     io::{Read, Write},
     sync::{LazyLock, RwLock, RwLockReadGuard},
 };
 use toml_edit::DocumentMut;
-use tracing::error;
 
 const CONFIG_PATH: &'static str = "./cfg.toml";
 

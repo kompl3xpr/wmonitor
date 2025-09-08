@@ -1,7 +1,7 @@
+use crate::core::log::{info, warn};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::time::Duration;
-use tracing::{info, warn};
-use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
 use crate::check::{RetryTimes, algorithms};
@@ -36,7 +36,7 @@ impl Checker {
     }
 
     pub async fn check_one(&mut self, fief_id: FiefId) -> Result<()> {
-        info!("running check for fief {}...", fief_id.0);
+        info!("running check for fief {}", fief_id.0);
         crate::core::lock_fief!(fief_id);
 
         let Ok(chunks) = self.repo.fief().chunks(fief_id).await else {

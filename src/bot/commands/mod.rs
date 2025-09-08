@@ -37,7 +37,7 @@ pub(super) fn all() -> Vec<poise::Command<Data, Error>> {
         fief::wmfief(),
         chunk::wmchunk(),
         user::wmuser(),
-        admin::wmadmin(),
+        admin::wmop(),
     ]
 }
 
@@ -72,7 +72,7 @@ pub async fn wmfetch(
     #[description = "区块在 Wplace 上的 Y 坐标"]
     y: usize,
 ) -> Result<(), Error> {
-    say!(ctx, "正在从 wplace.live 获取图片，请稍等...");
+    say!(ctx, "正在从 wplace.live 获取图片，请稍等……");
     let Ok((_, img)) = net::fetch_current_image([x, y]).await else {
         say!(ctx, "网络异常，请稍后重试。");
         return Ok(());

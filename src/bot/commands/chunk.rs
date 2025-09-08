@@ -285,7 +285,7 @@ pub(super) async fn refnow(
     };
     let repo = &ctx.data().repo;
 
-    say!(ctx, "正在从 wplace.live 获取图片，请稍等...");
+    say!(ctx, "正在从 wplace.live 获取图片，请稍等……");
     let Position { x, y } = chunk.position;
     let Ok((_, img)) = net::fetch_current_image([x, y]).await else {
         say!(ctx, "网络异常，请稍后重试。");

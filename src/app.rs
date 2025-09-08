@@ -6,10 +6,10 @@ use std::{
     time::Duration,
 };
 
+use crate::core::log::{error, info};
 use crate::{Repositories, bot, check::Checker};
 use anyhow::Result;
 use tokio::{sync::Mutex, time::sleep};
-use tracing::{error, info};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {
@@ -25,7 +25,7 @@ impl WMonitor {
         let should_close = should_close_atomic.clone();
         let mut checker = Checker::new(self.repo.clone(), tx);
         let check_task = tokio::spawn(async move {
-            info!("running checker...");
+            info!("running checker");
             while !should_close.load(Ordering::SeqCst) {
                 if let Err(e) = checker.check_all().await {
                     error!("{e}");
@@ -41,7 +41,7 @@ impl WMonitor {
         };
         let mut bot = bot::new_client(&self.discord_token, data).await?;
         let bot_task = tokio::spawn(async move {
-            info!("running bot...");
+            info!("running bot");
             if let Err(e) = bot.start().await {
                 error!("{e}");
             }

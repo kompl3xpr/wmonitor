@@ -1,15 +1,13 @@
-#![warn(clippy::str_to_string)]
-
 mod commands;
 mod notification;
 
+use crate::core::log::{error, info, warn};
 use poise::serenity_prelude::{self as serenity, CacheHttp, ChannelId, Http};
 use std::{
     sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
 use tokio::sync::{Mutex, mpsc::Receiver};
-use tracing::{error, info, warn};
 
 use crate::{bot::commands::start_with, cfg, check::Event, core::get_or_env};
 

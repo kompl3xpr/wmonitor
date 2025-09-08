@@ -257,13 +257,16 @@ pub(super) async fn info(
     };
 
     let skip_check_until = if fief.skip_check_until < now {
-        "启用中".to_string()
+        ":white_check_mark: 启用中".to_string()
     } else {
         let skip_check_until = fief.skip_check_until - now;
         if skip_check_until > chrono::Duration::weeks(100) {
-            "禁用中".to_string()
+            ":negative_squared_cross_mark: 禁用中".to_string()
         } else {
-            format!("{} 分钟之后启用", skip_check_until.num_minutes())
+            format!(
+                ":negative_squared_cross_mark: 禁用中，{} 分钟之后启用",
+                skip_check_until.num_minutes()
+            )
         }
     };
 

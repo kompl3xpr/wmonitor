@@ -1,15 +1,16 @@
 pub mod config;
+pub mod log;
 pub mod net;
 
 pub mod lock;
 pub(crate) use lock::lock_fief;
 
+use crate::core::log::{error, info};
 use anyhow::Result;
 use image::{ImageFormat, ImageReader};
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 use tap::prelude::*;
-use tracing::{error, info};
 
 pub const WPLACE_CHUNK_WIDTH: usize = 1000;
 pub const WPLACE_CHUNK_HEIGHT: usize = 1000;
@@ -18,7 +19,7 @@ pub fn get_or_env(cfg: impl Into<String>, none: impl AsRef<str>, env: impl AsRef
     let (cfg, none, env) = (cfg.into(), none.as_ref(), env.as_ref());
     match &cfg == none {
         true => {
-            info!("attempting to use environment variable `{env}`...");
+            info!("using environment variable `{env}`");
             std::env::var(env).unwrap_or_else(|e| {
                 error!("failed to get variable `{env}`: {e}");
                 panic!();
