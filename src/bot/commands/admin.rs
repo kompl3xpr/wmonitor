@@ -37,7 +37,7 @@ pub(super) async fn start(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     };
     let http = Http::new(ctx.http().token());
-    start_with(http, ctx.data().repo.clone(), tx, channel).await
+    start_with(http, ctx.data().repo, tx, channel).await
 }
 
 /// 关闭 WMonitor

@@ -53,8 +53,6 @@ use domains::*;
 
 #[async_trait]
 pub trait UserRepo: Sync + Send {
-    fn clone(&self) -> Box<dyn UserRepo>;
-
     // [C]reate
     async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>>;
     async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;

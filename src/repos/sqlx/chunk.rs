@@ -22,10 +22,6 @@ impl SqlxChunkRepo {
 #[allow(unused)]
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
-    fn clone(&self) -> Box<dyn ChunkRepo> {
-        Box::new(Self(Arc::clone(&self.0)))
-    }
-
     // [C]reate
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>> {
         let result: Vec<(i64,)> = sqlx::query_as(

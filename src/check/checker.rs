@@ -15,12 +15,12 @@ pub const MAX_RETRY_TIMES: usize = 3;
 
 pub struct Checker {
     event_tx: Sender<Event>,
-    repo: Repositories,
+    repo: &'static Repositories,
     retries: HashMap<FiefId, usize>,
 }
 
 impl Checker {
-    pub fn new(repositories: Repositories, event_sender: Sender<Event>) -> Self {
+    pub fn new(repositories: &'static Repositories, event_sender: Sender<Event>) -> Self {
         Self {
             repo: repositories,
             event_tx: event_sender,

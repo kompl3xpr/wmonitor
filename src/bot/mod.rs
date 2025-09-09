@@ -17,7 +17,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Custom user data passed to all command functions
 pub struct Data {
-    pub repo: crate::Repositories,
+    pub repo: &'static crate::Repositories,
     pub event_rx: Mutex<Option<Receiver<Event>>>,
     pub should_close: Arc<AtomicBool>,
 }
@@ -90,7 +90,7 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
 
                 let http = Http::new(ctx.http().token());
                 let rx = data.event_rx.lock().await.take().unwrap();
-                start_with(http, data.repo.clone(), rx, *CHANNEL_ID)
+                start_with(http, data.repo, rx, *CHANNEL_ID)
                     .await
                     .ok();
 

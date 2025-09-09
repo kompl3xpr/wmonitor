@@ -28,8 +28,6 @@ use domains::*;
 
 #[async_trait]
 pub trait ChunkRepo: Sync + Send {
-    fn clone(&self) -> Box<dyn ChunkRepo>;
-
     // [C]reate
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>>;
 

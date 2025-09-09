@@ -134,7 +134,7 @@ async fn has_perms(repo: &Repositories, id: UserId, fief_id: FiefId, perms: Perm
 
 pub(super) async fn start_with(
     http: Http,
-    repo: Repositories,
+    repo: &'static Repositories,
     mut tx: Receiver<Event>,
     channel: ChannelId,
 ) -> Result<(), Error> {

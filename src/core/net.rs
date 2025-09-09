@@ -22,6 +22,7 @@ pub struct IsCached(pub bool);
 
 pub async fn fetch_current_image(pos: impl Into<Position>) -> Result<(IsCached, ImagePng)> {
     let pos = pos.into();
+
     if let Some(img) = CACHE.get(&pos).await {
         return Ok((IsCached(true), img));
     }

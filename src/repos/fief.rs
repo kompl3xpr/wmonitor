@@ -27,8 +27,6 @@ use domains::*;
 
 #[async_trait]
 pub trait FiefRepo: Sync + Send {
-    fn clone(&self) -> Box<dyn FiefRepo>;
-
     // [C]reate
     async fn create(
         &self,
