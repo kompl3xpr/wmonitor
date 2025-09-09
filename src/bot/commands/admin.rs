@@ -119,7 +119,7 @@ async fn set_admin(ctx: Context<'_>, user: Mention, is_admin: bool) -> Result<()
     }
 
     let a = if is_admin { "" } else { "非" };
-    let is_admin_old = repo.user().user_by_id(user_id).await.unwrap().is_admin;
+    let is_admin_old = repo.user().user_by_id(user_id).await?.is_admin;
     if is_admin_old == is_admin {
         say!(ctx, "错误：{user} 已经是{a}管理员。");
         return Ok(());

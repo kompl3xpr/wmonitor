@@ -2,9 +2,6 @@ pub mod config;
 pub mod log;
 pub mod net;
 
-pub mod lock;
-pub(crate) use lock::lock_fief;
-
 use crate::core::log::{error, info};
 use anyhow::Result;
 use image::{ImageFormat, ImageReader};

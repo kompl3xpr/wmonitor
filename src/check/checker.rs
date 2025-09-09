@@ -37,7 +37,6 @@ impl Checker {
 
     pub async fn check_one(&mut self, fief_id: FiefId) -> Result<()> {
         info!("running check for fief {}", fief_id.0);
-        crate::core::lock_fief!(fief_id);
 
         let Ok(chunks) = self.repo.fief().chunks(fief_id).await else {
             let msg = format!("cannot get chunks from fief `{}`", fief_id.0);

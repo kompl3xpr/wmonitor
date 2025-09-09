@@ -28,7 +28,11 @@ static CHANNEL_ID: std::sync::LazyLock<ChannelId> = std::sync::LazyLock::new(|| 
         "",
         "NOTIFICATION_CHANNEL_ID",
     );
-    ChannelId::new(result.parse::<u64>().unwrap())
+    let Ok(id) = result.parse::<u64>() else {
+        error!("invalid channel ID: {result}");
+        panic!();
+    };
+    ChannelId::new(id)
 });
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
