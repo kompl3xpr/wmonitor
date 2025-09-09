@@ -20,6 +20,11 @@ static CACHE: LazyLock<Cache<Position, ImagePng>> = LazyLock::new(|| {
 
 pub struct IsCached(pub bool);
 
+pub fn clear_cache() {
+    let cache = &*CACHE;
+    cache.invalidate_all();
+}
+
 pub async fn fetch_current_image(pos: impl Into<Position>) -> Result<(IsCached, ImagePng)> {
     let pos = pos.into();
 

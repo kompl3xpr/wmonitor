@@ -132,6 +132,7 @@ impl Checker {
             self.check_one(fief.id).await.ok();
         }
 
+        net::clear_cache();
         Ok(())
     }
 }
