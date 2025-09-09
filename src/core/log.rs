@@ -27,6 +27,7 @@ pub fn init_logger() -> WorkerGuard {
             fmt::Layer::new()
                 .with_writer(non_blocking)
                 .with_ansi(false)
+                .pretty()
                 .with_filter(LevelFilter::INFO),
         );
 

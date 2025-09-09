@@ -1,4 +1,4 @@
-use crate::core::log::{info, warn};
+use crate::core::log::{info, warn, error};
 use anyhow::Result;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -89,16 +89,16 @@ impl Checker {
         };
 
         let mut failed_chunks = vec![];
-        let mut has_failed_chunks = false;
+        let mut errors = vec![];
         for id in chunks {
             match chunk_checker(id).await {
                 Ok(true) => (),
                 Ok(false) => failed_chunks.push(id),
-                Err(_) => has_failed_chunks = true,
+                Err(e) => errors.push(e),
             }
         }
 
-        if has_failed_chunks {
+        if !errors.is_empty() {
             let times = self.retries.entry(fief_id).or_insert(0);
             *times = MAX_RETRY_TIMES.min(*times) + 1;
             if *times > MAX_RETRY_TIMES {
@@ -106,7 +106,7 @@ impl Checker {
             }
             let event = Event::CheckFailed(fief_id, RetryTimes(*times - 1));
             self.send(event).await;
-            info!("failed to check fief {}", fief_id.0);
+            error!("failed to check fief {}: {:?}", fief_id.0, errors);
             return Ok(());
         }
 
@@ -125,6 +125,7 @@ impl Checker {
 
     pub async fn check_all(&mut self) -> Result<()> {
         let Ok(fiefs) = self.repo.fief().fiefs_to_check().await else {
+            error!("failed to get fiefs to check");
             return Err(anyhow::anyhow!("failed to get fiefs to check"));
         };
 

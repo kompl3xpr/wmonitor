@@ -176,10 +176,10 @@ pub(super) async fn setref(
             say!(ctx, "等待已超时，请重新输入指令。");
             return Ok(());
         };
-        msg.delete(ctx).await?;
 
         if msg.attachments.is_empty() {
             say!(ctx, "找不到附件，请再次上传。");
+            msg.delete(ctx).await?;
             continue;
         }
         let file = msg.attachments.remove(0);
@@ -190,10 +190,11 @@ pub(super) async fn setref(
             .unwrap_or(false)
         {
             img = Some(file.download().await?);
+            msg.delete(ctx).await?;
             break;
         } else {
             say!(ctx, "附件类型只能是 PNG 图片，请再次上传。");
-            continue;
+            msg.delete(ctx).await?;
         }
     }
 
@@ -237,10 +238,10 @@ pub(super) async fn setmask(
             say!(ctx, "等待已超时，请重新输入指令。");
             return Ok(());
         };
-        msg.delete(ctx).await?;
 
         if msg.attachments.is_empty() {
             say!(ctx, "找不到附件，请再次上传。");
+            msg.delete(ctx).await?;
             continue;
         }
         let file = msg.attachments.remove(0);
@@ -251,9 +252,11 @@ pub(super) async fn setmask(
             .unwrap_or(false)
         {
             img = Some(file.download().await?);
+            msg.delete(ctx).await?;
             break;
         } else {
             say!(ctx, "附件类型只能是 PNG 图片，请再次上传。");
+            msg.delete(ctx).await?;
         }
     }
 

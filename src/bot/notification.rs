@@ -3,7 +3,9 @@ use crate::{
     Repositories,
     check::{Event, MAX_RETRY_TIMES, RetryTimes},
 };
-use poise::serenity_prelude::{CreateAttachment, CreateMessage, Mention, MessageBuilder};
+use poise::serenity_prelude::{
+    CreateAttachment, CreateMessage, Mention, MessageBuilder, MessageFlags,
+};
 
 pub async fn notification_message(
     repo: &Repositories,
@@ -31,7 +33,9 @@ pub async fn notification_message(
 
         Event::CheckSuccess(fief_id) => {
             let name = repo.fief().name(fief_id).await?;
-            result.content(format!("领地 **{name}** 目前正常。"))
+            result
+                .flags(MessageFlags::SUPPRESS_NOTIFICATIONS)
+                .content(format!("领地 **{name}** 目前正常。"))
         }
 
         Event::DiffFound(fief_id, chunk_ids) => {
