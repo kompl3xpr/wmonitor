@@ -22,7 +22,7 @@ impl SqlxChunkRepo {
 #[allow(unused)]
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
-    // [C]reate
+    // [C] Create
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>> {
         let result: Vec<(i64,)> = sqlx::query_as(
             "SELECT id FROM Chunks
@@ -53,7 +53,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(super::conv_create_result(result)?)
     }
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk> {
         let result: entities::ChunkWithoutImgs = sqlx::query_as(
@@ -194,7 +194,7 @@ impl ChunkRepo for SqlxChunkRepo {
     // - related
     // *PASS*
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
         sqlx::query("UPDATE Chunks SET img_ref = $1 WHERE id = $2")
@@ -281,7 +281,7 @@ impl ChunkRepo for SqlxChunkRepo {
     // - related
     // *PASS*
 
-    // [D]elete
+    // [D] Delete
     async fn remove_by_id(&self, id: ChunkId) -> Result<bool> {
         let result = sqlx::query("DELETE FROM Chunks WHERE id = $1")
             .bind(id.0)

@@ -19,10 +19,10 @@ async fn main() -> anyhow::Result<()> {
     info!("loaded configurations:\n{:#?}", cfg());
 
     let discord_token = get_or_env(&cfg().common.discord_token, "", "DISCORD_TOKEN");
-    let datebase_url = get_or_env(&cfg().common.database_url, "", "DATABASE_URL");
+    let database_url = get_or_env(&cfg().common.database_url, "", "DATABASE_URL");
     let wmonitor = app::WMonitor::builder()
         .discord_token(discord_token)
-        .repo(Repositories::from_sqlx(&datebase_url).await?)
+        .repo(Repositories::from_sqlx(&database_url).await?)
         .build();
 
     wmonitor.run().await?;

@@ -53,11 +53,11 @@ use domains::*;
 
 #[async_trait]
 pub trait UserRepo: Sync + Send {
-    // [C]reate
+    // [C] Create
     async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>>;
     async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn user_by_id(&self, id: UserId) -> Result<User>;
     async fn all(&self) -> Result<Vec<User>>;
@@ -68,13 +68,13 @@ pub trait UserRepo: Sync + Send {
     async fn is_member_of(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
     async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions>;
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()>;
     // - related
     async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
 
-    // [D]elete
+    // [D] Delete
     async fn remove_by_id(&self, id: UserId) -> Result<bool>;
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
 }

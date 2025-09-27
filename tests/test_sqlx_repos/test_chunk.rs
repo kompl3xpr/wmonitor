@@ -5,7 +5,7 @@ use wmonitor::{
     domains::{ChunkId, FiefId},
 };
 
-// [C]reate
+// [C] Create
 #[tokio::test]
 async fn create() {
     let repo = new_repo().await;
@@ -22,7 +22,7 @@ async fn create() {
     assert!(id.is_none());
 }
 
-// [R]ead
+// [R] Read
 // - self or fields
 #[tokio::test]
 async fn chunk_by_id() {
@@ -226,7 +226,7 @@ async fn diff_count() {
 // - related
 // *PASS*
 
-// [U]pdate
+// [U] Update
 // - self or fields
 #[tokio::test]
 async fn update_ref_img() {
@@ -338,7 +338,7 @@ async fn rename() {
 // - related
 // *PASS*
 
-// [D]elete
+// [D] Delete
 #[tokio::test]
 async fn remove_by_id() {
     let repo = new_repo().await;

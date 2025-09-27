@@ -28,10 +28,10 @@ use domains::*;
 
 #[async_trait]
 pub trait ChunkRepo: Sync + Send {
-    // [C]reate
+    // [C] Create
     async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>>;
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk>;
     async fn chunk_by_name(&self, fief_id: FiefId, name: &str) -> Result<Chunk>;
@@ -47,7 +47,7 @@ pub trait ChunkRepo: Sync + Send {
     // - related
     // *PASS*
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
     async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
@@ -58,7 +58,7 @@ pub trait ChunkRepo: Sync + Send {
     // - related
     // *PASS*
 
-    // [D]elete
+    // [D] Delete
     async fn remove_by_id(&self, id: ChunkId) -> Result<bool>;
     async fn remove_by_name(&self, fief_id: FiefId, name: &str) -> Result<bool>;
     async fn remove_all_by_fief(&self, fief_id: FiefId) -> Result<bool>;

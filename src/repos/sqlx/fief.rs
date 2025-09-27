@@ -20,7 +20,7 @@ impl SqlxFiefRepo {
 #[allow(unused)]
 #[async_trait]
 impl FiefRepo for SqlxFiefRepo {
-    // [C]reate
+    // [C] Create
     async fn create(
         &self,
         name: &str,
@@ -48,7 +48,7 @@ impl FiefRepo for SqlxFiefRepo {
         Ok(super::conv_create_result(result)?)
     }
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn name(&self, id: FiefId) -> Result<String> {
         let result: (String,) = sqlx::query_as("SELECT name FROM Fiefs WHERE id = $1")
@@ -181,7 +181,7 @@ impl FiefRepo for SqlxFiefRepo {
         Ok(result.0 as usize)
     }
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn update_last_check(
         &self,
@@ -260,7 +260,7 @@ impl FiefRepo for SqlxFiefRepo {
     // - related
     // *PASS*
 
-    // [D]elete
+    // [D] Delete
     async fn remove_by_id(&self, id: FiefId) -> Result<bool> {
         let result = sqlx::query("DELETE FROM Fiefs WHERE id = $1")
             .bind(id.0)

@@ -7,7 +7,7 @@ use wmonitor::{
     domains::{Fief, FiefId, UserId},
 };
 
-// [C]reate
+// [C] Create
 #[tokio::test]
 async fn create() {
     let repo = new_repo().await;
@@ -29,7 +29,7 @@ async fn create() {
     assert!(id.is_none());
 }
 
-// [R]ead
+// [R] Read
 // - self or fields
 #[tokio::test]
 async fn name() {
@@ -206,7 +206,7 @@ async fn diff_count() {
     assert_eq!(repo.fief().diff_count(id).await.unwrap(), 7);
 }
 
-// [U]pdate
+// [U] Update
 // - self or fields
 #[tokio::test]
 async fn update_last_check() {
@@ -324,7 +324,7 @@ async fn rename() {
 // - related
 // *PASS*
 
-// [D]elete
+// [D] Delete
 #[tokio::test]
 async fn remove_by_id() {
     let repo = new_repo().await;

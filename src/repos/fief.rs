@@ -27,14 +27,14 @@ use domains::*;
 
 #[async_trait]
 pub trait FiefRepo: Sync + Send {
-    // [C]reate
+    // [C] Create
     async fn create(
         &self,
         name: &str,
         check_interval: Option<chrono::Duration>,
     ) -> Result<Option<FiefId>>;
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn name(&self, id: FiefId) -> Result<String>;
     async fn id(&self, name: &str) -> Result<FiefId>;
@@ -48,7 +48,7 @@ pub trait FiefRepo: Sync + Send {
     async fn chunk_count(&self, id: FiefId) -> Result<usize>;
     async fn diff_count(&self, id: FiefId) -> Result<usize>;
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn update_last_check(
         &self,
@@ -69,7 +69,7 @@ pub trait FiefRepo: Sync + Send {
     // - related
     // *PASS*
 
-    // [D]elete
+    // [D] Delete
     async fn remove_by_id(&self, id: FiefId) -> Result<bool>;
     async fn remove_by_name(&self, name: &str) -> Result<bool>;
 }

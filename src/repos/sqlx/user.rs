@@ -18,7 +18,7 @@ impl SqlxUserRepo {
 #[allow(unused)]
 #[async_trait]
 impl UserRepo for SqlxUserRepo {
-    // [C]reate
+    // [C] Create
     async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>> {
         let result = sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
             .bind(id.0)
@@ -40,7 +40,7 @@ impl UserRepo for SqlxUserRepo {
         Ok(super::conv_create_result::<i64>(result)?.is_some())
     }
 
-    // [R]ead
+    // [R] Read
     // - self or fields
     async fn user_by_id(&self, id: UserId) -> Result<User> {
         let result: entities::User = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
@@ -125,7 +125,7 @@ impl UserRepo for SqlxUserRepo {
             .ok_or(anyhow::anyhow!("failed to parse permissions from database"))?)
     }
 
-    // [U]pdate
+    // [U] Update
     // - self or fields
     async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()> {
         sqlx::query("UPDATE Users SET is_admin = $1 WHERE id = $2")
@@ -148,7 +148,7 @@ impl UserRepo for SqlxUserRepo {
         Ok(())
     }
 
-    // [D]elete
+    // [D] Delete
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool> {
         let result = sqlx::query("DELETE FROM Members WHERE user_id = $1 AND fief_id = $2")
             .bind(id.0)
