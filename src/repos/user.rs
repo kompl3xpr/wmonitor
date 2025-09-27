@@ -6,7 +6,18 @@ pub(super) mod domains {
     use bitflags::bitflags;
     use serde::{Deserialize, Serialize};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
+    #[derive(
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Debug,
+        Clone,
+        Copy,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
     pub struct UserId(pub i64);
 
     impl From<i64> for UserId {
@@ -54,8 +65,17 @@ use domains::*;
 #[async_trait]
 pub trait UserRepo: Sync + Send {
     // [C] Create
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>>;
-    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool>;
+    async fn create(
+        &self,
+        id: UserId,
+        is_admin: bool,
+    ) -> Result<Option<UserId>>;
+    async fn join(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+        p: Option<Permissions>,
+    ) -> Result<bool>;
 
     // [R] Read
     // - self or fields
@@ -66,13 +86,22 @@ pub trait UserRepo: Sync + Send {
     // - related
     async fn fiefs(&self, id: UserId) -> Result<Vec<FiefId>>;
     async fn is_member_of(&self, id: UserId, fief_id: FiefId) -> Result<bool>;
-    async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions>;
+    async fn permissions_in(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+    ) -> Result<Permissions>;
 
     // [U] Update
     // - self or fields
     async fn set_admin(&self, id: UserId, is_admin: bool) -> Result<()>;
     // - related
-    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()>;
+    async fn set_permissions_in(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+        p: Permissions,
+    ) -> Result<()>;
 
     // [D] Delete
     async fn remove_by_id(&self, id: UserId) -> Result<bool>;

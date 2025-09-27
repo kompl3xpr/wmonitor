@@ -25,7 +25,9 @@ pub async fn notification_message(
                 let mentions = users
                     .into_iter()
                     .map(|u| Mention::User((u.0 as u64).into()))
-                    .fold("\n".to_string(), |s, m| s + m.to_string().as_str() + " ");
+                    .fold("\n".to_string(), |s, m| {
+                        s + m.to_string().as_str() + " "
+                    });
                 builder.push(mentions);
             }
             result.content(builder.build())
@@ -65,13 +67,14 @@ pub async fn notification_message(
                 .push(mentions)
                 .build();
             result.content(content).add_files(
-                chunk_result_imgs
-                    .into_iter()
-                    .flatten()
-                    .enumerate()
-                    .map(|(i, img)| {
-                        CreateAttachment::bytes(img.into_inner(), format!("diff_{i}.png"))
-                    }),
+                chunk_result_imgs.into_iter().flatten().enumerate().map(
+                    |(i, img)| {
+                        CreateAttachment::bytes(
+                            img.into_inner(),
+                            format!("diff_{i}.png"),
+                        )
+                    },
+                ),
             )
         }
 
@@ -80,13 +83,17 @@ pub async fn notification_message(
         Event::ChunkRefMissing(fief_id, chunk_id) => {
             let f = repo.fief().name(fief_id).await?;
             let c = repo.chunk().name(chunk_id).await?;
-            result.content(format!("警告：领地 **{f}** 的区块 *{c}* 未设置参考图。"))
+            result.content(format!(
+                "警告：领地 **{f}** 的区块 *{c}* 未设置参考图。"
+            ))
         }
 
         Event::ChunkMaskMissing(fief_id, chunk_id) => {
             let f = repo.fief().name(fief_id).await?;
             let c = repo.chunk().name(chunk_id).await?;
-            result.content(format!("警告：领地 **{f}** 的区块 *{c}* 未设置遮罩图。"))
+            result.content(format!(
+                "警告：领地 **{f}** 的区块 *{c}* 未设置遮罩图。"
+            ))
         }
     })
 }

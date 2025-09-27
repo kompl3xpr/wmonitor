@@ -12,7 +12,11 @@ use tap::prelude::*;
 pub const WPLACE_CHUNK_WIDTH: usize = 1000;
 pub const WPLACE_CHUNK_HEIGHT: usize = 1000;
 
-pub fn get_or_env(cfg: impl Into<String>, none: impl AsRef<str>, env: impl AsRef<str>) -> String {
+pub fn get_or_env(
+    cfg: impl Into<String>,
+    none: impl AsRef<str>,
+    env: impl AsRef<str>,
+) -> String {
     let (cfg, none, env) = (cfg.into(), none.as_ref(), env.as_ref());
     match cfg == none {
         true => {
@@ -26,7 +30,18 @@ pub fn get_or_env(cfg: impl Into<String>, none: impl AsRef<str>, env: impl AsRef
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
+#[derive(
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    Serialize,
+    Deserialize,
+)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -114,7 +129,9 @@ impl TryFrom<ImagePng> for image::GrayImage {
 impl TryFrom<image::RgbaImage> for ImagePng {
     type Error = anyhow::Error;
 
-    fn try_from(value: image::RgbaImage) -> std::result::Result<Self, Self::Error> {
+    fn try_from(
+        value: image::RgbaImage,
+    ) -> std::result::Result<Self, Self::Error> {
         Self::try_from_rgba(value)
     }
 }
@@ -122,7 +139,9 @@ impl TryFrom<image::RgbaImage> for ImagePng {
 impl TryFrom<image::GrayImage> for ImagePng {
     type Error = anyhow::Error;
 
-    fn try_from(value: image::GrayImage) -> std::result::Result<Self, Self::Error> {
+    fn try_from(
+        value: image::GrayImage,
+    ) -> std::result::Result<Self, Self::Error> {
         Self::try_from_gray(value)
     }
 }

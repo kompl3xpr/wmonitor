@@ -46,7 +46,9 @@ pub(super) fn all() -> Vec<poise::Command<Data, Error>> {
 pub async fn wmhelp(
     ctx: Context<'_>,
     // #[description = "展示 WMonitor 的所有指令"]
-    #[autocomplete = "poise::builtins::autocomplete_command"] command: Option<String>,
+    #[autocomplete = "poise::builtins::autocomplete_command"] command: Option<
+        String,
+    >,
 ) -> Result<(), Error> {
     poise::builtins::help(
         ctx,
@@ -118,7 +120,12 @@ fn id_of(user: &poise::serenity_prelude::User) -> UserId {
     UserId(user.id.get() as i64)
 }
 
-async fn has_perms(repo: &Repositories, id: UserId, fief_id: FiefId, perms: Permissions) -> bool {
+async fn has_perms(
+    repo: &Repositories,
+    id: UserId,
+    fief_id: FiefId,
+    perms: Permissions,
+) -> bool {
     let Ok(user) = repo.user().user_by_id(id).await else {
         return false;
     };

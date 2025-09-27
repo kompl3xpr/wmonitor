@@ -55,7 +55,8 @@ pub(super) async fn join(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
     else {
         return Ok(());
     };
@@ -63,7 +64,9 @@ pub(super) async fn join(
     let repo = &ctx.data().repo;
     match repo.user().join(user_id, fief_id, None).await {
         Ok(true) => say!(ctx, "已添加用户 {user} 至领地 **{fief_name}**。"),
-        Ok(false) => say!(ctx, "错误：用户 {user} 已经是领地 **{fief_name}** 的成员。"),
+        Ok(false) => {
+            say!(ctx, "错误：用户 {user} 已经是领地 **{fief_name}** 的成员。")
+        }
         Err(e) => say!(
             ctx,
             "错误：无法添加用户 {user} 至领地 **{fief_name}**: {e}。"
@@ -80,14 +83,17 @@ pub(super) async fn leave(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
+    let Some((user_id, fief_id)) =
+        _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
     else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
 
     match repo.user().leave(user_id, fief_id).await {
-        Ok(true) => say!(ctx, "已将用户 {user} 从领地 **{fief_name}** 中移出。"),
+        Ok(true) => {
+            say!(ctx, "已将用户 {user} 从领地 **{fief_name}** 中移出。")
+        }
         Ok(false) => say!(
             ctx,
             "错误：用户 {user} 不在领地 **{fief_name}** 或已经被移出。"

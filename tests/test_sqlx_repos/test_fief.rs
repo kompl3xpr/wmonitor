@@ -96,7 +96,10 @@ async fn all() {
     repo.fief().create("协会横幅", None).await.unwrap();
     repo.fief().create("布莉姬特", None).await.unwrap();
 
-    let expect = HashSet::<String>::from_iter(["协会横幅".to_owned(), "布莉姬特".to_owned()]);
+    let expect = HashSet::<String>::from_iter([
+        "协会横幅".to_owned(),
+        "布莉姬特".to_owned(),
+    ]);
     let actual = repo.fief().all().await.unwrap();
     assert_eq!(expect, actual.into_iter().map(|f| f.name).collect());
 }
@@ -111,7 +114,10 @@ async fn fiefs_to_check() {
 
     repo.fief().create("协会横幅", None).await.unwrap();
     repo.fief().create("布莉姬特", None).await.unwrap();
-    let expect = HashSet::<String>::from_iter(["协会横幅".to_owned(), "布莉姬特".to_owned()]);
+    let expect = HashSet::<String>::from_iter([
+        "协会横幅".to_owned(),
+        "布莉姬特".to_owned(),
+    ]);
     let actual = repo.fief().fiefs_to_check().await.unwrap();
     assert_eq!(expect, actual.into_iter().map(|f| f.name).collect());
 
@@ -147,7 +153,8 @@ async fn members() {
     repo.user().create(UserId(1919810), true).await.unwrap();
     repo.user().join(UserId(1919810), id, None).await.unwrap();
     let actual = repo.fief().members(id).await.unwrap();
-    let expect = HashSet::<UserId>::from_iter([UserId(114514), UserId(1919810)]);
+    let expect =
+        HashSet::<UserId>::from_iter([UserId(114514), UserId(1919810)]);
     assert_eq!(expect, HashSet::from_iter(actual));
 
     repo.user().leave(UserId(1919810), id).await.unwrap();
@@ -212,11 +219,13 @@ async fn diff_count() {
 async fn update_last_check() {
     let repo = new_repo().await;
     repo.fief().create("协会横幅", None).await.unwrap();
-    let Fief { last_check, id, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    let Fief { last_check, id, .. } =
+        repo.fief().fief_by_name("协会横幅").await.unwrap();
     let old = last_check;
 
     repo.fief().update_last_check(id, None).await.unwrap();
-    let Fief { last_check, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    let Fief { last_check, .. } =
+        repo.fief().fief_by_name("协会横幅").await.unwrap();
     let new = last_check;
     assert_ne!(old, new);
 }
@@ -230,7 +239,8 @@ async fn set_check_interval() {
         .set_check_interval(id, chrono::Duration::nanoseconds(1))
         .await
         .unwrap();
-    let Fief { check_interval, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    let Fief { check_interval, .. } =
+        repo.fief().fief_by_name("协会横幅").await.unwrap();
     let new = check_interval;
 
     let min = cfg().check.minimum_interval_min as i64;
@@ -240,7 +250,8 @@ async fn set_check_interval() {
         .set_check_interval(id, chrono::Duration::weeks(1))
         .await
         .unwrap();
-    let Fief { check_interval, .. } = repo.fief().fief_by_name("协会横幅").await.unwrap();
+    let Fief { check_interval, .. } =
+        repo.fief().fief_by_name("协会横幅").await.unwrap();
     let new = check_interval;
     assert_eq!(new.num_minutes(), chrono::Duration::weeks(1).num_minutes());
 }

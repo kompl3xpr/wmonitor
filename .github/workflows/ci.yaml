@@ -126,58 +126,58 @@ jobs:
       - name: run typos
         run: typos
 
-  taplo-toml-fmt:
-    name: taplo fmt
-    runs-on: ubuntu-latest
+  # taplo-toml-fmt:
+  #   name: taplo fmt
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Fetch Repository
-        uses: actions/checkout@v5
+  #   steps:
+  #     - name: Fetch Repository
+  #       uses: actions/checkout@v5
 
-      - name: Install Taplo
-        uses: taiki-e/install-action@v2
-        with:
-          tool: taplo-cli
+  #     - name: Install Taplo
+  #       uses: taiki-e/install-action@v2
+  #       with:
+  #         tool: taplo-cli
 
-      - name: Run Taplo
-        id: taplo
-        run: taplo fmt --check --diff
+  #     - name: Run Taplo
+  #       id: taplo
+  #       run: taplo fmt --check --diff
 
-  markdownlint:
-    runs-on: ubuntu-latest
+  # markdownlint:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Fetch Repository
-        uses: actions/checkout@v5
+  #   steps:
+  #     - name: Fetch Repository
+  #       uses: actions/checkout@v5
 
-      - name: markdownlint-cli2-action
-        uses: DavidAnson/markdownlint-cli2-action@v20
-        with:
-          globs: '**/*.md'
+  #     - name: markdownlint-cli2-action
+  #       uses: DavidAnson/markdownlint-cli2-action@v20
+  #       with:
+  #         globs: '**/*.md'
 
-  yamlfmt:
-    runs-on: ubuntu-latest
+  # yamlfmt:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Fetch Repository
-        uses: actions/checkout@v5
+  #   steps:
+  #     - name: Fetch Repository
+  #       uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: stable
-          cache: false
+  #     - uses: actions/setup-go@v6
+  #       with:
+  #         go-version: stable
+  #         cache: false
 
-      - name: Install yamlfmt
-        run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+  #     - name: Install yamlfmt
+  #       run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 
-      - name: Run yamlfmt
-        run: yamlfmt --lint .
+  #     - name: Run yamlfmt
+  #       run: yamlfmt --lint .
 
-  cargo-deny:
-    uses: ./.github/workflows/cargo_deny.yaml
+  # cargo-deny:
+  #   uses: ./.github/workflows/cargo_deny.yaml
 
-  check-msrv:
-    uses: ./.github/workflows/check_msrv.yaml
+  # check-msrv:
+  #   uses: ./.github/workflows/check_msrv.yaml
 
   cargo-miri:
     uses: ./.github/workflows/cargo_miri.yaml

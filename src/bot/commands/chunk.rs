@@ -19,7 +19,8 @@ use super::{Context, Error, has_perms, id_of, say};
     slash_command,
     category = "区块",
     subcommands(
-        "add", "remove", "rename", "setref", "refnow", "setmask", "setpos", "info"
+        "add", "remove", "rename", "setref", "refnow", "setmask", "setpos",
+        "info"
     )
 )]
 pub(super) async fn wmchunk(_: Context<'_>) -> Result<(), Error> {
@@ -92,8 +93,12 @@ pub(super) async fn add(
             "成功在领地 **{fief_name}** 内创建区块 *{name}*(id: `{}`)。",
             id.0
         ),
-        Ok(None) => format!("错误：区块 *{name}* 早已存在于领地 **{fief_name}**。"),
-        Err(e) => format!("错误：无法在领地 **{fief_name}** 内创建区块 *{name}*: {e}"),
+        Ok(None) => {
+            format!("错误：区块 *{name}* 早已存在于领地 **{fief_name}**。")
+        }
+        Err(e) => {
+            format!("错误：无法在领地 **{fief_name}** 内创建区块 *{name}*: {e}")
+        }
     };
 
     say!(ctx, msg);
@@ -108,15 +113,23 @@ pub(super) async fn remove(
 
     #[rename = "区块名"] name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_DELETE).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_DELETE).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
 
     let msg = match repo.chunk().remove_by_id(chunk.id).await {
-        Ok(true) => format!("成功将区块 *{name}* 从领地 **{fief_name}** 中删除。"),
-        Ok(false) => format!("错误：无法从领地 **{fief_name}** 中找到区块 *{name}*。"),
-        Err(e) => format!("错误：无法将区块 *{name}* 从领地 **{fief_name}** 中删除: {e}。"),
+        Ok(true) => {
+            format!("成功将区块 *{name}* 从领地 **{fief_name}** 中删除。")
+        }
+        Ok(false) => {
+            format!("错误：无法从领地 **{fief_name}** 中找到区块 *{name}*。")
+        }
+        Err(e) => format!(
+            "错误：无法将区块 *{name}* 从领地 **{fief_name}** 中删除: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -136,14 +149,20 @@ pub(super) async fn rename(
     #[description = "给区块起个新名字"]
     new_name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
 
     let msg = match repo.chunk().rename(chunk.id, &new_name).await {
-        Ok(_) => format!("成功将领地 **{fief_name}** 内的区块 *{name}* 更名为 *{new_name}*。"),
-        Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
+        Ok(_) => format!(
+            "成功将领地 **{fief_name}** 内的区块 *{name}* 更名为 *{new_name}*。"
+        ),
+        Err(e) => format!(
+            "错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -159,7 +178,9 @@ pub(super) async fn setref(
     #[description = "区块的原名字"]
     name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
@@ -204,8 +225,12 @@ pub(super) async fn setref(
     };
 
     let msg = match repo.chunk().update_ref_img(chunk.id, Some(img)).await {
-        Ok(_) => format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的参考图。"),
-        Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
+        Ok(_) => {
+            format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的参考图。")
+        }
+        Err(e) => format!(
+            "错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -221,7 +246,9 @@ pub(super) async fn setmask(
     #[description = "区块的原名字"]
     name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
@@ -266,8 +293,12 @@ pub(super) async fn setmask(
     };
 
     let msg = match repo.chunk().update_mask_img(chunk.id, Some(img)).await {
-        Ok(_) => format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的遮罩图。"),
-        Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
+        Ok(_) => {
+            format!("成功更新领地 **{fief_name}** 内区块 *{name}* 的遮罩图。")
+        }
+        Err(e) => format!(
+            "错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -283,7 +314,9 @@ pub(super) async fn refnow(
     #[description = "区块的原名字"]
     name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
@@ -296,8 +329,12 @@ pub(super) async fn refnow(
     };
 
     let msg = match repo.chunk().update_ref_img(chunk.id, Some(img)).await {
-        Ok(_) => format!("成功将领地 **{fief_name}** 内区块 *{name}* 的参考图更新为当前状态。"),
-        Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
+        Ok(_) => format!(
+            "成功将领地 **{fief_name}** 内区块 *{name}* 的参考图更新为当前状态。"
+        ),
+        Err(e) => format!(
+            "错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -321,14 +358,20 @@ pub(super) async fn setpos(
     #[description = "区块在 Wplace 上的 Y 坐标"]
     y: usize,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::CHUNK_EDIT).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
 
     let msg = match repo.chunk().set_position(chunk.id, [x, y].into()).await {
-        Ok(_) => format!("成功将领地 **{fief_name}** 内的区块 *{name}* 坐标改为 `({x}, {y})`。"),
-        Err(e) => format!("错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"),
+        Ok(_) => format!(
+            "成功将领地 **{fief_name}** 内的区块 *{name}* 坐标改为 `({x}, {y})`。"
+        ),
+        Err(e) => format!(
+            "错误：无法修改领地 **{fief_name}** 内的区块 *{name}*: {e}。"
+        ),
     };
     say!(ctx, msg);
     Ok(())
@@ -344,7 +387,9 @@ pub(super) async fn info(
     #[description = "区块的原名字"]
     name: String,
 ) -> Result<(), Error> {
-    let Some((_, chunk)) = _try(ctx, &fief_name, &name, Permissions::NONE).await? else {
+    let Some((_, chunk)) =
+        _try(ctx, &fief_name, &name, Permissions::NONE).await?
+    else {
         return Ok(());
     };
     let repo = &ctx.data().repo;
@@ -382,7 +427,10 @@ pub(super) async fn info(
         .ephemeral(true);
 
     if let Some(result) = result {
-        reply = reply.attachment(CreateAttachment::bytes(result.into_inner(), "status.png"));
+        reply = reply.attachment(CreateAttachment::bytes(
+            result.into_inner(),
+            "status.png",
+        ));
     }
 
     ctx.send(reply).await?;

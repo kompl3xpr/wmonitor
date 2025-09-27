@@ -1,11 +1,11 @@
 use image::{DynamicImage, ImageFormat, ImageReader};
 use wmonitor::check::algorithms::{find_diffs, gen_visual_result};
 
-const REF_IMG_PATH: &'static str = "tests_data/ref.png";
-const MASK_IMG_PATH: &'static str = "tests_data/mask.png";
-const CURR_IMG_PATH: &'static str = "tests_data/curr.png";
-const DIFF_IMG_PATH: &'static str = "tests_data/diff.png";
-const RESULT_IMG_PATH: &'static str = "tests_data/result.png";
+const REF_IMG_PATH: &str = "tests_data/ref.png";
+const MASK_IMG_PATH: &str = "tests_data/mask.png";
+const CURR_IMG_PATH: &str = "tests_data/curr.png";
+const DIFF_IMG_PATH: &str = "tests_data/diff.png";
+const RESULT_IMG_PATH: &str = "tests_data/result.png";
 
 fn load(path: &str) -> Option<DynamicImage> {
     let mut reader = ImageReader::open(path).ok()?;

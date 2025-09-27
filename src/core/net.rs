@@ -25,14 +25,17 @@ pub fn clear_cache() {
     cache.invalidate_all();
 }
 
-pub async fn fetch_current_image(pos: impl Into<Position>) -> Result<(IsCached, ImagePng)> {
+pub async fn fetch_current_image(
+    pos: impl Into<Position>,
+) -> Result<(IsCached, ImagePng)> {
     let pos = pos.into();
 
     if let Some(img) = CACHE.get(&pos).await {
         return Ok((IsCached(true), img));
     }
 
-    let dur = Duration::from_secs(cfg().network.sleep_between_requests_sec as u64);
+    let dur =
+        Duration::from_secs(cfg().network.sleep_between_requests_sec as u64);
     sleep(dur).await;
 
     let Position { x, y } = pos;

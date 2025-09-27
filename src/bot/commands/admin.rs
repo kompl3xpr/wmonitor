@@ -87,19 +87,27 @@ pub(super) async fn listop(ctx: Context<'_>) -> Result<(), Error> {
 
 /// 添加管理员
 #[poise::command(prefix_command, slash_command, category = "管理员")]
-pub(super) async fn op(ctx: Context<'_>, #[rename = "用户"] user: Mention) -> Result<(), Error> {
+pub(super) async fn op(
+    ctx: Context<'_>,
+    #[rename = "用户"] user: Mention,
+) -> Result<(), Error> {
     set_admin(ctx, user, true).await
 }
 
 /// 取消管理员
 #[poise::command(prefix_command, slash_command, category = "管理员")]
 pub(super) async fn deop(
-    ctx: Context<'_>, #[rename = "用户"] user: Mention
+    ctx: Context<'_>,
+    #[rename = "用户"] user: Mention,
 ) -> Result<(), Error> {
     set_admin(ctx, user, false).await
 }
 
-async fn set_admin(ctx: Context<'_>, user: Mention, is_admin: bool) -> Result<(), Error> {
+async fn set_admin(
+    ctx: Context<'_>,
+    user: Mention,
+    is_admin: bool,
+) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 
     let author = repo.user().user_by_id(id_of(ctx.author())).await;

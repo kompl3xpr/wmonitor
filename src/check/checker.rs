@@ -20,7 +20,10 @@ pub struct Checker {
 }
 
 impl Checker {
-    pub fn new(repositories: &'static Repositories, event_sender: Sender<Event>) -> Self {
+    pub fn new(
+        repositories: &'static Repositories,
+        event_sender: Sender<Event>,
+    ) -> Self {
         Self {
             repo: repositories,
             event_tx: event_sender,
@@ -48,7 +51,10 @@ impl Checker {
 
             let ref_ = self.repo.chunk().ref_img(id).await?;
             let Some(ref_) = ref_.map(ImagePng::try_to_rgba) else {
-                warn!("reference image of chunk {}.{} is null", fief_id.0, id.0);
+                warn!(
+                    "reference image of chunk {}.{} is null",
+                    fief_id.0, id.0
+                );
                 self.send(Event::ChunkRefMissing(fief_id, id)).await;
                 return Ok(true);
             };
@@ -73,7 +79,8 @@ impl Checker {
             let (ref_, mask) = (ref_?, mask?);
             let rec = algorithms::find_diffs(&ref_, &mask, &curr)?;
 
-            let result = algorithms::gen_visual_result(&ref_, &mask, &curr, &rec)?;
+            let result =
+                algorithms::gen_visual_result(&ref_, &mask, &curr, &rec)?;
             self.repo
                 .chunk()
                 .update_result_img(id, result.try_into().ok())

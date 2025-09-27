@@ -19,16 +19,26 @@ impl SqlxUserRepo {
 #[async_trait]
 impl UserRepo for SqlxUserRepo {
     // [C] Create
-    async fn create(&self, id: UserId, is_admin: bool) -> Result<Option<UserId>> {
-        let result = sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
-            .bind(id.0)
-            .bind(is_admin)
-            .execute(&*self.0)
-            .await;
+    async fn create(
+        &self,
+        id: UserId,
+        is_admin: bool,
+    ) -> Result<Option<UserId>> {
+        let result =
+            sqlx::query("INSERT INTO Users (id, is_admin) VALUES ($1, $2)")
+                .bind(id.0)
+                .bind(is_admin)
+                .execute(&*self.0)
+                .await;
         Ok(super::conv_create_result(result)?)
     }
 
-    async fn join(&self, id: UserId, fief_id: FiefId, p: Option<Permissions>) -> Result<bool> {
+    async fn join(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+        p: Option<Permissions>,
+    ) -> Result<bool> {
         let permissions = p.unwrap_or(Permissions::NONE);
         let result =
             sqlx::query("INSERT INTO Members (user_id, fief_id, permissions) VALUES ($1, $2, $3)")
@@ -43,10 +53,11 @@ impl UserRepo for SqlxUserRepo {
     // [R] Read
     // - self or fields
     async fn user_by_id(&self, id: UserId) -> Result<User> {
-        let result: entities::User = sqlx::query_as("SELECT * FROM Users WHERE id = $1")
-            .bind(id.0)
-            .fetch_one(&*self.0)
-            .await?;
+        let result: entities::User =
+            sqlx::query_as("SELECT * FROM Users WHERE id = $1")
+                .bind(id.0)
+                .fetch_one(&*self.0)
+                .await?;
 
         Ok(User {
             id: UserId(result.id),
@@ -96,10 +107,11 @@ impl UserRepo for SqlxUserRepo {
 
     // - related
     async fn fiefs(&self, id: UserId) -> Result<Vec<FiefId>> {
-        let fiefs: Vec<(i64,)> = sqlx::query_as("SELECT fief_id FROM Members WHERE user_id = $1")
-            .bind(id.0)
-            .fetch_all(&*self.0)
-            .await?;
+        let fiefs: Vec<(i64,)> =
+            sqlx::query_as("SELECT fief_id FROM Members WHERE user_id = $1")
+                .bind(id.0)
+                .fetch_all(&*self.0)
+                .await?;
         Ok(fiefs.into_iter().map(|f| FiefId(f.0)).collect())
     }
 
@@ -114,15 +126,20 @@ impl UserRepo for SqlxUserRepo {
         Ok(result)
     }
 
-    async fn permissions_in(&self, id: UserId, fief_id: FiefId) -> Result<Permissions> {
+    async fn permissions_in(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+    ) -> Result<Permissions> {
         let (p,): (i64,) =
             sqlx::query_as("SELECT permissions FROM Members WHERE user_id = $1 AND fief_id = $2")
                 .bind(id.0)
                 .bind(fief_id.0)
                 .fetch_one(&*self.0)
                 .await?;
-        Ok(Permissions::from_bits(p)
-            .ok_or(anyhow::anyhow!("failed to parse permissions from database"))?)
+        Ok(Permissions::from_bits(p).ok_or(anyhow::anyhow!(
+            "failed to parse permissions from database"
+        ))?)
     }
 
     // [U] Update
@@ -138,7 +155,12 @@ impl UserRepo for SqlxUserRepo {
     }
 
     // - related
-    async fn set_permissions_in(&self, id: UserId, fief_id: FiefId, p: Permissions) -> Result<()> {
+    async fn set_permissions_in(
+        &self,
+        id: UserId,
+        fief_id: FiefId,
+        p: Permissions,
+    ) -> Result<()> {
         sqlx::query("UPDATE Members SET permissions = $1 WHERE user_id = $2 AND fief_id = $3")
             .bind(p.bits())
             .bind(id.0)
@@ -150,11 +172,13 @@ impl UserRepo for SqlxUserRepo {
 
     // [D] Delete
     async fn leave(&self, id: UserId, fief_id: FiefId) -> Result<bool> {
-        let result = sqlx::query("DELETE FROM Members WHERE user_id = $1 AND fief_id = $2")
-            .bind(id.0)
-            .bind(fief_id.0)
-            .execute(&*self.0)
-            .await?;
+        let result = sqlx::query(
+            "DELETE FROM Members WHERE user_id = $1 AND fief_id = $2",
+        )
+        .bind(id.0)
+        .bind(fief_id.0)
+        .execute(&*self.0)
+        .await?;
         Ok(result.rows_affected() == 1)
     }
 

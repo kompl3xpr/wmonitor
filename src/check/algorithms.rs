@@ -1,5 +1,7 @@
 use anyhow::Result;
-use image::{GenericImageView, GrayImage, Pixel, RgbaImage, imageops::FilterType};
+use image::{
+    GenericImageView, GrayImage, Pixel, RgbaImage, imageops::FilterType,
+};
 use rayon::prelude::*;
 
 use crate::{
@@ -37,7 +39,11 @@ impl Default for ScopeRect {
     }
 }
 
-pub fn find_diffs(ref_: &RgbaImage, mask: &GrayImage, curr: &RgbaImage) -> Result<DiffRecord> {
+pub fn find_diffs(
+    ref_: &RgbaImage,
+    mask: &GrayImage,
+    curr: &RgbaImage,
+) -> Result<DiffRecord> {
     let (r, m, c) = (ref_, mask, curr);
 
     // check size
@@ -85,7 +91,10 @@ pub fn gen_visual_result(
     let (r, m, c, d) = (ref_, mask, curr, &rec.diff_img);
 
     let size @ (w, h) = r.dimensions();
-    if m.dimensions() != size || c.dimensions() != size || d.dimensions() != size {
+    if m.dimensions() != size
+        || c.dimensions() != size
+        || d.dimensions() != size
+    {
         return Err(anyhow::anyhow!("failed to find diffs: image size error"));
     }
 
@@ -94,7 +103,9 @@ pub fn gen_visual_result(
     let normal = rgb_usize_to_rgba(cfg().visualization.normal_color);
     let unmasked = rgb_usize_to_rgba(cfg().visualization.unmasked_color);
     let pct = cfg().visualization.diff_img_opacity_pct;
-    let mix = |mut base: image::Rgba<u8>, appended: image::Rgba<u8>| -> image::Rgba<u8> {
+    let mix = |mut base: image::Rgba<u8>,
+               appended: image::Rgba<u8>|
+     -> image::Rgba<u8> {
         if base.0[3] < 0xFF {
             base = image::Rgba([0x00, 0x00, 0x00, 0xFF]);
         }
@@ -136,8 +147,10 @@ fn get_sub_image_params(scp: ScopeRect) -> [u32; 4] {
         cfg().visualization.vertical_margin,
     );
     let (scp_w, scp_h) = (
-        WPLACE_CHUNK_WIDTH.min(scp.right_bottom.x - scp.left_top.x + 1 + margin_x * 2),
-        WPLACE_CHUNK_HEIGHT.min(scp.right_bottom.y - scp.left_top.y + 1 + margin_y * 2),
+        WPLACE_CHUNK_WIDTH
+            .min(scp.right_bottom.x - scp.left_top.x + 1 + margin_x * 2),
+        WPLACE_CHUNK_HEIGHT
+            .min(scp.right_bottom.y - scp.left_top.y + 1 + margin_y * 2),
     );
     let (w, h) = (min_w.max(scp_w), min_h.max(scp_h));
     let (x_mov, y_mov) = (

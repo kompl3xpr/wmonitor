@@ -7,7 +7,18 @@ pub(super) mod domains {
     use crate::{core::Position, domains::FiefId};
     use serde::{Deserialize, Serialize};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
+    #[derive(
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Debug,
+        Clone,
+        Copy,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
     pub struct ChunkId(pub i64);
 
     impl From<i64> for ChunkId {
@@ -29,12 +40,18 @@ use domains::*;
 #[async_trait]
 pub trait ChunkRepo: Sync + Send {
     // [C] Create
-    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>>;
+    async fn create(
+        &self,
+        name: &str,
+        fief_id: FiefId,
+        pos: Position,
+    ) -> Result<Option<ChunkId>>;
 
     // [R] Read
     // - self or fields
     async fn chunk_by_id(&self, id: ChunkId) -> Result<Chunk>;
-    async fn chunk_by_name(&self, fief_id: FiefId, name: &str) -> Result<Chunk>;
+    async fn chunk_by_name(&self, fief_id: FiefId, name: &str)
+    -> Result<Chunk>;
     async fn fief_id(&self, id: ChunkId) -> Result<FiefId>;
     async fn name(&self, id: ChunkId) -> Result<String>;
     async fn id(&self, fief_id: FiefId, name: &str) -> Result<ChunkId>;
@@ -49,10 +66,27 @@ pub trait ChunkRepo: Sync + Send {
 
     // [U] Update
     // - self or fields
-    async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
-    async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
-    async fn update_result_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()>;
-    async fn update_diff(&self, id: ChunkId, img: Option<ImagePng>, count: usize) -> Result<()>;
+    async fn update_ref_img(
+        &self,
+        id: ChunkId,
+        img: Option<ImagePng>,
+    ) -> Result<()>;
+    async fn update_mask_img(
+        &self,
+        id: ChunkId,
+        img: Option<ImagePng>,
+    ) -> Result<()>;
+    async fn update_result_img(
+        &self,
+        id: ChunkId,
+        img: Option<ImagePng>,
+    ) -> Result<()>;
+    async fn update_diff(
+        &self,
+        id: ChunkId,
+        img: Option<ImagePng>,
+        count: usize,
+    ) -> Result<()>;
     async fn set_position(&self, id: ChunkId, pos: Position) -> Result<()>;
     async fn rename(&self, id: ChunkId, name: &str) -> Result<()>;
     // - related
@@ -60,6 +94,7 @@ pub trait ChunkRepo: Sync + Send {
 
     // [D] Delete
     async fn remove_by_id(&self, id: ChunkId) -> Result<bool>;
-    async fn remove_by_name(&self, fief_id: FiefId, name: &str) -> Result<bool>;
+    async fn remove_by_name(&self, fief_id: FiefId, name: &str)
+    -> Result<bool>;
     async fn remove_all_by_fief(&self, fief_id: FiefId) -> Result<bool>;
 }

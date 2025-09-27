@@ -5,7 +5,18 @@ use async_trait::async_trait;
 pub(super) mod domains {
     use serde::{Deserialize, Serialize};
 
-    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Hash, Serialize, Deserialize)]
+    #[derive(
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Debug,
+        Clone,
+        Copy,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
     pub struct FiefId(pub i64);
 
     impl From<i64> for FiefId {
@@ -55,7 +66,11 @@ pub trait FiefRepo: Sync + Send {
         id: FiefId,
         date: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<()>;
-    async fn set_check_interval(&self, id: FiefId, interval: chrono::Duration) -> Result<()>;
+    async fn set_check_interval(
+        &self,
+        id: FiefId,
+        interval: chrono::Duration,
+    ) -> Result<()>;
     async fn mark_should_check_now(&self, id: FiefId) -> Result<()>;
     async fn skip_check(&self, id: FiefId) -> Result<()>;
     async fn keep_check(&self, id: FiefId) -> Result<()>;

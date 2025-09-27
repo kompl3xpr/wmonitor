@@ -22,18 +22,19 @@ pub struct Data {
     pub should_close: Arc<AtomicBool>,
 }
 
-static CHANNEL_ID: std::sync::LazyLock<ChannelId> = std::sync::LazyLock::new(|| {
-    let result = get_or_env(
-        &cfg().notification.discord_channel,
-        "",
-        "NOTIFICATION_CHANNEL_ID",
-    );
-    let Ok(id) = result.parse::<u64>() else {
-        error!("invalid channel ID: {result}");
-        panic!();
-    };
-    ChannelId::new(id)
-});
+static CHANNEL_ID: std::sync::LazyLock<ChannelId> =
+    std::sync::LazyLock::new(|| {
+        let result = get_or_env(
+            &cfg().notification.discord_channel,
+            "",
+            "NOTIFICATION_CHANNEL_ID",
+        );
+        let Ok(id) = result.parse::<u64>() else {
+            error!("invalid channel ID: {result}");
+            panic!();
+        };
+        ChannelId::new(id)
+    });
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
@@ -52,7 +53,10 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
-pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<serenity::Client> {
+pub async fn new_client(
+    token: &impl AsRef<str>,
+    data: Data,
+) -> anyhow::Result<serenity::Client> {
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
     let options = poise::FrameworkOptions {
@@ -90,7 +94,11 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
                 info!("Logged in as {}", _ready.user.name);
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                poise::builtins::register_globally(
+                    ctx,
+                    &framework.options().commands,
+                )
+                .await?;
 
                 let http = Http::new(ctx.http().token());
                 let rx = data.event_rx.lock().await.take().unwrap();
@@ -102,8 +110,8 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
         .options(options)
         .build();
 
-    let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+    let intents = serenity::GatewayIntents::non_privileged()
+        | serenity::GatewayIntents::MESSAGE_CONTENT;
 
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
