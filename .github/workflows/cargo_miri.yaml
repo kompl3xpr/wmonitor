@@ -20,8 +20,8 @@ jobs:
         run: |
           rustup toolchain install nightly --component miri;
           rustup override set nightly;
-          cargo miri setup;
+          MIRIFLAGS="-Zmiri-disable-isolation" cargo miri setup;
 
       - name: Test with Miri
-        run: cargo miri test --workspace --all-targets --all-features
+        run: MIRIFLAGS="-Zmiri-disable-isolation" cargo miri test --workspace --all-targets --all-features
 
