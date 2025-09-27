@@ -32,5 +32,5 @@ pub fn init_logger() -> WorkerGuard {
         );
 
     tracing::subscriber::set_global_default(subscriber).unwrap();
-    return guard;
+    guard
 }

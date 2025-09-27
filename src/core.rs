@@ -14,7 +14,7 @@ pub const WPLACE_CHUNK_HEIGHT: usize = 1000;
 
 pub fn get_or_env(cfg: impl Into<String>, none: impl AsRef<str>, env: impl AsRef<str>) -> String {
     let (cfg, none, env) = (cfg.into(), none.as_ref(), env.as_ref());
-    match &cfg == none {
+    match cfg == none {
         true => {
             info!("using environment variable `{env}`");
             std::env::var(env).unwrap_or_else(|e| {
@@ -59,7 +59,7 @@ impl ImagePng {
         raw_data.pipe(Self)
     }
 
-    fn to_reader(self) -> ImageReader<Cursor<Vec<u8>>> {
+    fn into_reader(self) -> ImageReader<Cursor<Vec<u8>>> {
         self.0
             .pipe(Cursor::new)
             .pipe(ImageReader::new)
@@ -67,12 +67,12 @@ impl ImagePng {
     }
 
     pub fn try_to_rgba(self) -> Result<image::RgbaImage> {
-        let result = self.to_reader().decode()?.to_rgba8();
+        let result = self.into_reader().decode()?.to_rgba8();
         Ok(result)
     }
 
     pub fn try_to_gray(self) -> Result<image::GrayImage> {
-        let result = self.to_reader().decode()?.to_luma8();
+        let result = self.into_reader().decode()?.to_luma8();
         Ok(result)
     }
 

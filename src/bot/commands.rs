@@ -142,7 +142,7 @@ pub(super) async fn start_with(
 
     tokio::spawn(async move {
         while let Some(event) = tx.recv().await {
-            if let Ok(msg) = notification_message(&repo, event).await {
+            if let Ok(msg) = notification_message(repo, event).await {
                 channel.send_message(&http, msg).await.ok();
             }
         }

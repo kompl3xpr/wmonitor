@@ -36,7 +36,7 @@ impl WMonitor {
         });
 
         let data = bot::Data {
-            repo: repo,
+            repo,
             event_rx: Mutex::new(Some(rx)),
             should_close: should_close_atomic.clone(),
         };

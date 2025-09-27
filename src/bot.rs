@@ -94,9 +94,7 @@ pub async fn new_client(token: &impl AsRef<str>, data: Data) -> anyhow::Result<s
 
                 let http = Http::new(ctx.http().token());
                 let rx = data.event_rx.lock().await.take().unwrap();
-                start_with(http, data.repo, rx, *CHANNEL_ID)
-                    .await
-                    .ok();
+                start_with(http, data.repo, rx, *CHANNEL_ID).await.ok();
 
                 Ok(data)
             })

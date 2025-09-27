@@ -24,7 +24,7 @@ async fn _try(
     perms: Permissions,
 ) -> Result<Option<(UserId, FiefId)>, Error> {
     let repo = &ctx.data().repo;
-    let Ok(fief_id) = repo.fief().id(&fief_name).await else {
+    let Ok(fief_id) = repo.fief().id(fief_name).await else {
         say!(ctx, "错误：领地 **{fief_name}** 不存在。");
         return Ok(None);
     };

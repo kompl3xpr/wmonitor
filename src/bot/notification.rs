@@ -67,7 +67,7 @@ pub async fn notification_message(
             result.content(content).add_files(
                 chunk_result_imgs
                     .into_iter()
-                    .filter_map(|img| img)
+                    .flatten()
                     .enumerate()
                     .map(|(i, img)| {
                         CreateAttachment::bytes(img.into_inner(), format!("diff_{i}.png"))

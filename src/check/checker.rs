@@ -1,4 +1,4 @@
-use crate::core::log::{info, warn, error};
+use crate::core::log::{error, info, warn};
 use anyhow::Result;
 use std::collections::HashMap;
 use std::time::Duration;

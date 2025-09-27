@@ -6,7 +6,7 @@ use std::{
 };
 use toml_edit::DocumentMut;
 
-const CONFIG_PATH: &'static str = "./cfg.toml";
+const CONFIG_PATH: &str = "./cfg.toml";
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -99,7 +99,7 @@ pub fn cfg<'a>() -> RwLockReadGuard<'a, Config> {
 pub fn save_cfg_with(f: impl FnOnce(&mut DocumentMut)) {
     {
         let mut doc = CONFIG_DOC.write().unwrap();
-        f(&mut *doc);
+        f(&mut doc);
     }
 
     let doc = CONFIG_DOC.read().unwrap();

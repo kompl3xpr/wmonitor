@@ -300,7 +300,7 @@ pub(super) async fn info(
             .fold(String::new(), |a, s| a + "`" + s + "` ");
         members.push((
             Mention::User((member_id.0 as u64).into()),
-            if perms_str == "" {
+            if perms_str.is_empty() {
                 "无".into()
             } else {
                 perms_str
