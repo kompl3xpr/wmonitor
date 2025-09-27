@@ -7,10 +7,11 @@ const CURR_IMG_PATH: &str = "./tests_data/curr.png";
 const DIFF_IMG_PATH: &str = "./tests_data/diff.png";
 const RESULT_IMG_PATH: &str = "./tests_data/result.png";
 
-fn load(path: &str) -> Option<DynamicImage> {
-    let mut reader = ImageReader::open(path).ok()?;
+fn load(path: &str) -> anyhow::Result<DynamicImage> {
+    let mut reader = ImageReader::open(path)?;
     reader.set_format(ImageFormat::Png);
-    reader.decode().ok()
+    let result = reader.decode()?;
+    Ok(result)
 }
 
 #[test]
