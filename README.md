@@ -42,6 +42,7 @@
      ```
    - **Linux & macOS:**
      ```bash
+     chmod +x ./scripts/setup.sh
      ./scripts/setup.sh
      ./scripts/build.sh
      ```
@@ -166,6 +167,7 @@ git clone https://github.com/kompl3xpr/wmonitor.git
 cd wmonitor
 
 # 初始化仓库设置
+chmod +x ./scripts/setup.sh
 ./scripts/setup.sh
 
 # 安装依赖
