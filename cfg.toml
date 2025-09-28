@@ -6,7 +6,7 @@
 database_url = "sqlite://db/wmonitor.db"
 
 # Discord bot token. If empty, it will use the environment variable 'DISCORD_BOT'.
-# Discord 机器人令牌。如果为空，将使用环境变量 'DISCORD_BOT'。
+# Discord 机器人令牌。如果为空，将使用环境变量 'DISCORD_TOKEN'。
 discord_token = ""
 
 
