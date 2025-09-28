@@ -21,7 +21,7 @@
 
 ### 系统要求
 
-- Git
+- Git 2.9 或更高版本
 - Rust 1.70 或更高版本
 - Discord 机器人令牌
 - Discord 频道 ID
@@ -37,11 +37,14 @@
 2. **构建项目**
    - **Windows:**
      ```cmd
-     .\build.bat
+     .\scripts\setup.bat
+     .\scripts\build.bat
      ```
    - **Linux & macOS:**
      ```bash
-     ./build.sh
+     chmod +x ./scripts/setup.sh
+     ./scripts/setup.sh
+     ./scripts/build.sh
      ```
 
 3. **配置环境变量**
@@ -162,6 +165,10 @@
 # 克隆仓库
 git clone https://github.com/kompl3xpr/wmonitor.git
 cd wmonitor
+
+# 初始化仓库设置
+chmod +x ./scripts/setup.sh
+./scripts/setup.sh
 
 # 安装依赖
 cargo build
