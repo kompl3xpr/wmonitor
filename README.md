@@ -21,7 +21,7 @@
 
 ### 系统要求
 
-- Git
+- Git 2.9 或更高版本
 - Rust 1.70 或更高版本
 - Discord 机器人令牌
 - Discord 频道 ID
