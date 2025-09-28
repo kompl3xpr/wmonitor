@@ -1,0 +1,36 @@
+#!/bin/bash
+# Pre-push hook for Rust project
+# Runs code formatting and checks before allowing push
+
+echo "Running pre-push checks..."
+
+# Function to print error and exit
+error_exit() {
+    echo "ERROR: $1" >&2
+    echo "Pre-push checks failed. Please fix the issues and try again."
+    exit 1
+}
+
+# Store the original directory
+ORIGINAL_DIR=$(pwd)
+
+# Change to the root of the git repository (in case we're in a subdirectory)
+cd $(git rev-parse --show-toplevel) || error_exit "Cannot find git repository root"
+
+echo "1. Running cargo fmt..."
+cargo fmt -- --check || error_exit "Code formatting check failed. Run 'cargo fmt' to format your code."
+
+echo "2. Running cargo check..."
+cargo check || error_exit "Cargo check failed. Please fix compilation errors."
+
+echo "3. Running cargo clippy..."
+cargo clippy -- -D warnings || error_exit "Clippy check failed. Please fix the warnings."
+
+echo "4. Running cargo test..."
+cargo test || error_exit "Tests failed. Please fix the failing tests."
+
+# Change back to original directory
+cd "$ORIGINAL_DIR"
+
+echo "All pre-push checks passed! Proceeding with push..."
+exit 0
