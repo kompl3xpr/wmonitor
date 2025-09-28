@@ -37,11 +37,13 @@
 2. **构建项目**
    - **Windows:**
      ```cmd
-     .\build.bat
+     .\scripts\setup.bat
+     .\scripts\build.bat
      ```
    - **Linux & macOS:**
      ```bash
-     ./build.sh
+     ./scripts/setup.sh
+     ./scripts/build.sh
      ```
 
 3. **配置环境变量**
@@ -162,6 +164,9 @@
 # 克隆仓库
 git clone https://github.com/kompl3xpr/wmonitor.git
 cd wmonitor
+
+# 初始化仓库设置
+./scripts/setup.sh
 
 # 安装依赖
 cargo build
