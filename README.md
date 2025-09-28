@@ -35,17 +35,17 @@
    ```
 
 2. **构建项目**
-   - **Windows:**
-     ```cmd
-     .\scripts\setup.bat
-     .\scripts\build.bat
-     ```
-   - **Linux & macOS:**
-     ```bash
-     chmod +x ./scripts/setup.sh
-     ./scripts/setup.sh
-     ./scripts/build.sh
-     ```
+- **Windows:**
+   ```cmd
+   .\scripts\setup.bat
+   .\scripts\build.bat
+   ```
+- **Linux & macOS:**
+   ```bash
+   chmod +x ./scripts/setup.sh
+   ./scripts/setup.sh
+   ./scripts/build.sh
+   ```
 
 3. **配置环境变量**
    创建 `.env` 文件并设置：
@@ -56,16 +56,16 @@
    ```
 
 4. **运行机器人**
-   - **Windows:**
-     ```cmd
-     cd .\bin
-     .\wmonitor.exe
-     ```
-   - **Linux & macOS:**
-     ```bash
-     cd ./bin
-     ./wmonitor
-     ```
+- **Windows:**
+   ```cmd
+   cd .\bin
+   .\wmonitor.exe
+   ```
+- **Linux & macOS:**
+   ```bash
+   cd ./bin
+   ./wmonitor
+   ```
 
 ## 📖 使用指南
 
