@@ -53,9 +53,16 @@
    ```
 
 4. **运行机器人**
-   ```bash
-   ./bin/wmonitor
-   ```
+   - **Windows:**
+     ```cmd
+     cd .\bin
+     .\wmonitor.exe
+     ```
+   - **Linux & macOS:**
+     ```bash
+     cd ./bin
+     ./wmonitor
+     ```
 
 ## 📖 使用指南
 
