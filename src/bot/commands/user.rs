@@ -1,10 +1,10 @@
+use poise::serenity_prelude::{Mention, MessageBuilder};
+
+use super::{Context, Error, say};
 use crate::{
     bot::commands::{has_perms, id_of},
     domains::{FiefId, Permissions, UserId},
 };
-use poise::serenity_prelude::{Mention, MessageBuilder};
-
-use super::{Context, Error, say};
 
 /// 用户操作
 #[poise::command(
@@ -55,8 +55,7 @@ pub(super) async fn join(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) =
-        _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
+    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_INVITE).await?
     else {
         return Ok(());
     };
@@ -83,8 +82,7 @@ pub(super) async fn leave(
     #[rename = "用户"] user: Mention,
     #[rename = "领地名"] fief_name: String,
 ) -> Result<(), Error> {
-    let Some((user_id, fief_id)) =
-        _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
+    let Some((user_id, fief_id)) = _try(ctx, &user, &fief_name, Permissions::MEMBER_KICK).await?
     else {
         return Ok(());
     };

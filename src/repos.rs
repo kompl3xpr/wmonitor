@@ -1,6 +1,7 @@
+use std::{str::FromStr, sync::Arc};
+
 use anyhow::Result;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
-use std::{str::FromStr, sync::Arc};
 pub mod sqlx_repos;
 
 mod chunk;
@@ -8,15 +9,11 @@ mod fief;
 mod user;
 
 pub mod domains {
-    pub use super::chunk::domains::*;
-    pub use super::fief::domains::*;
-    pub use super::user::domains::*;
+    pub use super::{chunk::domains::*, fief::domains::*, user::domains::*};
 }
 
 pub mod traits {
-    pub use super::chunk::ChunkRepo;
-    pub use super::fief::FiefRepo;
-    pub use super::user::UserRepo;
+    pub use super::{chunk::ChunkRepo, fief::FiefRepo, user::UserRepo};
 }
 
 pub struct Repositories {
@@ -27,8 +24,7 @@ pub struct Repositories {
 
 impl Repositories {
     pub async fn from_sqlx(url: &str) -> Result<Self> {
-        let options =
-            SqliteConnectOptions::from_str(url)?.create_if_missing(true);
+        let options = SqliteConnectOptions::from_str(url)?.create_if_missing(true);
         let pool = Arc::new(SqlitePool::connect_with(options).await?);
 
         sqlx::migrate!("db/migrations").run(&*pool).await?;

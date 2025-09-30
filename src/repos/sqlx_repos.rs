@@ -5,9 +5,8 @@ mod fief;
 pub use fief::SqlxFiefRepo;
 
 mod user;
-pub use user::SqlxUserRepo;
-
 use sqlx::sqlite::SqliteQueryResult;
+pub use user::SqlxUserRepo;
 pub fn conv_create_result<Id>(
     result: Result<SqliteQueryResult, sqlx::Error>,
 ) -> Result<Option<Id>, sqlx::Error>

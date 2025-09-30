@@ -11,5 +11,7 @@ pub mod app;
 pub mod bot;
 pub mod check;
 pub mod core;
-pub use core::config::{cfg, init_cfg, save_cfg_with};
-pub use core::net;
+pub use core::{
+    config::{cfg, init_cfg, save_cfg_with},
+    net,
+};

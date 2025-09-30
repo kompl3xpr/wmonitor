@@ -1,8 +1,8 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
-
-use std::sync::Arc;
 
 use crate::{
     core::{ImagePng, Position},
@@ -23,12 +23,7 @@ impl SqlxChunkRepo {
 #[async_trait]
 impl ChunkRepo for SqlxChunkRepo {
     // [C] Create
-    async fn create(
-        &self,
-        name: &str,
-        fief_id: FiefId,
-        pos: Position,
-    ) -> Result<Option<ChunkId>> {
+    async fn create(&self, name: &str, fief_id: FiefId, pos: Position) -> Result<Option<ChunkId>> {
         let result: Vec<(i64,)> = sqlx::query_as(
             "SELECT id FROM Chunks
             WHERE fief_id = $1 AND name = $2",
@@ -82,11 +77,7 @@ impl ChunkRepo for SqlxChunkRepo {
         })
     }
 
-    async fn chunk_by_name(
-        &self,
-        fief_id: FiefId,
-        name: &str,
-    ) -> Result<Chunk> {
+    async fn chunk_by_name(&self, fief_id: FiefId, name: &str) -> Result<Chunk> {
         let result: entities::ChunkWithoutImgs = sqlx::query_as(
             "SELECT id, name, fief_id, pos_x, pos_y, diff_count
             FROM Chunks
@@ -110,21 +101,19 @@ impl ChunkRepo for SqlxChunkRepo {
     }
 
     async fn fief_id(&self, id: ChunkId) -> Result<FiefId> {
-        let result: (i64,) =
-            sqlx::query_as("SELECT fief_id FROM Chunks WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (i64,) = sqlx::query_as("SELECT fief_id FROM Chunks WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(FiefId(result.0))
     }
 
     async fn name(&self, id: ChunkId) -> Result<String> {
-        let result: (String,) =
-            sqlx::query_as("SELECT name FROM Chunks WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (String,) = sqlx::query_as("SELECT name FROM Chunks WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(result.0)
     }
@@ -156,11 +145,10 @@ impl ChunkRepo for SqlxChunkRepo {
     }
 
     async fn ref_img(&self, id: ChunkId) -> Result<Option<ImagePng>> {
-        let result: (Option<Vec<u8>>,) =
-            sqlx::query_as("SELECT img_ref FROM Chunks WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (Option<Vec<u8>>,) = sqlx::query_as("SELECT img_ref FROM Chunks WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(result.0.map(ImagePng::new))
     }
@@ -196,24 +184,20 @@ impl ChunkRepo for SqlxChunkRepo {
     }
 
     async fn diff_count(&self, id: ChunkId) -> Result<usize> {
-        let result: (i64,) =
-            sqlx::query_as("SELECT diff_count FROM Chunks WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (i64,) = sqlx::query_as("SELECT diff_count FROM Chunks WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(result.0 as usize)
     }
+
     // - related
     // *PASS*
 
     // [U] Update
     // - self or fields
-    async fn update_ref_img(
-        &self,
-        id: ChunkId,
-        img: Option<ImagePng>,
-    ) -> Result<()> {
+    async fn update_ref_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
         sqlx::query("UPDATE Chunks SET img_ref = $1 WHERE id = $2")
             .bind(img.map(ImagePng::into_inner))
             .bind(id.0)
@@ -223,11 +207,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(())
     }
 
-    async fn update_mask_img(
-        &self,
-        id: ChunkId,
-        img: Option<ImagePng>,
-    ) -> Result<()> {
+    async fn update_mask_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
         sqlx::query("UPDATE Chunks SET img_mask = $1 WHERE id = $2")
             .bind(img.map(ImagePng::into_inner))
             .bind(id.0)
@@ -237,11 +217,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(())
     }
 
-    async fn update_result_img(
-        &self,
-        id: ChunkId,
-        img: Option<ImagePng>,
-    ) -> Result<()> {
+    async fn update_result_img(&self, id: ChunkId, img: Option<ImagePng>) -> Result<()> {
         sqlx::query("UPDATE Chunks SET img_result = $1 WHERE id = $2")
             .bind(img.map(ImagePng::into_inner))
             .bind(id.0)
@@ -251,12 +227,7 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(())
     }
 
-    async fn update_diff(
-        &self,
-        id: ChunkId,
-        img: Option<ImagePng>,
-        count: usize,
-    ) -> Result<()> {
+    async fn update_diff(&self, id: ChunkId, img: Option<ImagePng>, count: usize) -> Result<()> {
         sqlx::query(
             "UPDATE Chunks
             SET img_diff = $1, diff_count = $2
@@ -308,6 +279,7 @@ impl ChunkRepo for SqlxChunkRepo {
 
         Ok(())
     }
+
     // - related
     // *PASS*
 
@@ -321,17 +293,12 @@ impl ChunkRepo for SqlxChunkRepo {
         Ok(result.rows_affected() == 1)
     }
 
-    async fn remove_by_name(
-        &self,
-        fief_id: FiefId,
-        name: &str,
-    ) -> Result<bool> {
-        let result =
-            sqlx::query("DELETE FROM Chunks WHERE fief_id = $1 AND name = $2")
-                .bind(fief_id.0)
-                .bind(name)
-                .execute(&*self.0)
-                .await?;
+    async fn remove_by_name(&self, fief_id: FiefId, name: &str) -> Result<bool> {
+        let result = sqlx::query("DELETE FROM Chunks WHERE fief_id = $1 AND name = $2")
+            .bind(fief_id.0)
+            .bind(name)
+            .execute(&*self.0)
+            .await?;
 
         Ok(result.rows_affected() == 1)
     }
