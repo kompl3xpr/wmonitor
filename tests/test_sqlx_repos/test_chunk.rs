@@ -1,9 +1,11 @@
-use super::new_repo;
 use std::collections::HashSet;
+
 use wmonitor::{
     core::{ImagePng, Position},
     domains::{ChunkId, FiefId},
 };
+
+use super::new_repo;
 
 // [C] Create
 #[tokio::test]

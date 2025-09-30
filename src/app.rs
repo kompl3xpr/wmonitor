@@ -6,10 +6,14 @@ use std::{
     time::Duration,
 };
 
-use crate::core::log::{error, info};
-use crate::{Repositories, bot, check::Checker};
 use anyhow::Result;
 use tokio::{sync::Mutex, time::sleep};
+
+use crate::{
+    Repositories, bot,
+    check::Checker,
+    core::log::{error, info},
+};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct WMonitor {

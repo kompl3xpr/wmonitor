@@ -15,8 +15,7 @@ use crate::{
     slash_command,
     category = "领地",
     subcommands(
-        "add", "remove", "check", "rename", "settime", "enable", "disable",
-        "info"
+        "add", "remove", "check", "rename", "settime", "enable", "disable", "info"
     )
 )]
 pub(super) async fn wmfief(_: Context<'_>) -> Result<(), Error> {
@@ -229,8 +228,7 @@ pub(super) async fn disable(
 /// 获取领地信息
 #[poise::command(prefix_command, slash_command, category = "领地")]
 pub(super) async fn info(
-    ctx: Context<'_>,
-    #[rename = "领地名"] name: String,
+    ctx: Context<'_>, #[rename = "领地名"] name: String
 ) -> Result<(), Error> {
     let repo = &ctx.data().repo;
 

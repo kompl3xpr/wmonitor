@@ -1,13 +1,16 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::TimeZone;
 use sqlx::sqlite::SqlitePool;
 
-use std::sync::Arc;
-
-use crate::domains::{ChunkId, Fief, FiefId, UserId};
-use crate::repos::traits::FiefRepo;
-use crate::{cfg, entities};
+use crate::{
+    cfg,
+    domains::{ChunkId, Fief, FiefId, UserId},
+    entities,
+    repos::traits::FiefRepo,
+};
 
 pub struct SqlxFiefRepo(Arc<SqlitePool>);
 
@@ -51,31 +54,28 @@ impl FiefRepo for SqlxFiefRepo {
     // [R] Read
     // - self or fields
     async fn name(&self, id: FiefId) -> Result<String> {
-        let result: (String,) =
-            sqlx::query_as("SELECT name FROM Fiefs WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (String,) = sqlx::query_as("SELECT name FROM Fiefs WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(result.0)
     }
 
     async fn id(&self, name: &str) -> Result<FiefId> {
-        let result: (i64,) =
-            sqlx::query_as("SELECT id FROM Fiefs WHERE name = $1")
-                .bind(name)
-                .fetch_one(&*self.0)
-                .await?;
+        let result: (i64,) = sqlx::query_as("SELECT id FROM Fiefs WHERE name = $1")
+            .bind(name)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(FiefId(result.0))
     }
 
     async fn fief_by_id(&self, id: FiefId) -> Result<Fief> {
-        let r: entities::Fief =
-            sqlx::query_as("SELECT * FROM Fiefs WHERE id = $1")
-                .bind(id.0)
-                .fetch_one(&*self.0)
-                .await?;
+        let r: entities::Fief = sqlx::query_as("SELECT * FROM Fiefs WHERE id = $1")
+            .bind(id.0)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(Fief {
             id: FiefId(r.id),
@@ -87,11 +87,10 @@ impl FiefRepo for SqlxFiefRepo {
     }
 
     async fn fief_by_name(&self, name: &str) -> Result<Fief> {
-        let r: entities::Fief =
-            sqlx::query_as("SELECT * FROM Fiefs WHERE name = $1")
-                .bind(name)
-                .fetch_one(&*self.0)
-                .await?;
+        let r: entities::Fief = sqlx::query_as("SELECT * FROM Fiefs WHERE name = $1")
+            .bind(name)
+            .fetch_one(&*self.0)
+            .await?;
 
         Ok(Fief {
             id: FiefId(r.id),
@@ -136,6 +135,7 @@ impl FiefRepo for SqlxFiefRepo {
             })
             .collect())
     }
+
     // - related
     async fn members(&self, id: FiefId) -> Result<Vec<UserId>> {
         Ok(
@@ -201,11 +201,7 @@ impl FiefRepo for SqlxFiefRepo {
         Ok(())
     }
 
-    async fn set_check_interval(
-        &self,
-        id: FiefId,
-        interval: chrono::Duration,
-    ) -> Result<()> {
+    async fn set_check_interval(&self, id: FiefId, interval: chrono::Duration) -> Result<()> {
         let min_interval = cfg().check.minimum_interval_min as i64;
         sqlx::query("UPDATE Fiefs SET check_interval_min = $1 WHERE id = $2")
             .bind(interval.num_minutes().max(min_interval))
